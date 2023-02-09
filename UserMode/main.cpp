@@ -11,9 +11,14 @@ int main(int argc, char* argv[]) {
 		__nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	assert(hHandle != INVALID_HANDLE_VALUE, "CreateFile failed.\n");
 
-	DWORD lpBytesReturned = 0;
-	::DeviceIoControl(hHandle, IOCTL_POOL, __nullptr, 0, __nullptr, 0, &lpBytesReturned, __nullptr);
-	::CloseHandle(hHandle);
+	for (auto idx = 0; idx < 100; ++idx) {
+		::CreateFile(L"\\\\.\\GIO", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE,
+			__nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	}
+
+	//DWORD lpBytesReturned = 0;
+	//::DeviceIoControl(hHandle, IOCTL_POOL, __nullptr, 0, __nullptr, 0, &lpBytesReturned, __nullptr);
+	//::CloseHandle(hHandle);
 
 	return 0;
 }
