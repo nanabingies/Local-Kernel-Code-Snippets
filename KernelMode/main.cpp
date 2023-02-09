@@ -1,9 +1,9 @@
 #include "Header.hpp"
 
 EXTERN_C{
-	PDRIVER_DISPATCH DefaultDispatch;
-	PDRIVER_DISPATCH IoctlDispatch;
-	PDRIVER_UNLOAD DriverUnload;
+	DRIVER_DISPATCH DefaultDispatch;
+	DRIVER_DISPATCH IoctlDispatch;
+	DRIVER_UNLOAD DriverUnload;
 };
 
 EXTERN_C NTSTATUS DriverEntry(_In_ PDRIVER_OBJECT DriverObject, _In_ PUNICODE_STRING RegistryPath) {
@@ -36,4 +36,11 @@ EXTERN_C NTSTATUS DriverEntry(_In_ PDRIVER_OBJECT DriverObject, _In_ PUNICODE_ST
 	DriverObject->Flags &= DO_BUFFERED_IO;
 
 	return STATUS_SUCCESS;
+}
+
+EXTERN_C VOID DriverUnload(_In_ PDRIVER_OBJECT DriverObject) {
+	UNICODE_STRING dosName{};
+	RtlInitUnicodeString(&dosName, DOSDEVICE_NAME);
+	IoDeleteSymbolicLink(&dosName);
+	IoDeleteDevice(DriverObject->DeviceObject);
 }

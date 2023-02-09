@@ -6,8 +6,9 @@
 #pragma warning(disable : 4214)
 #pragma warning(disable : 4201)
 
-#define DOSDEVICE_NAME L"\\DosDevices\\KernelMode"
-#define DRIVER_NAME L"\\Device\\KernelMode"
+#define DOSDEVICE_NAME	L"\\DosDevices\\KernelMode"
+#define DRIVER_NAME		L"\\Device\\KernelMode"
+#define POOLTAGINFO		L'pTAG'
 
 //0x430 bytes (sizeof)
 struct _KTHREAD

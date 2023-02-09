@@ -34,5 +34,8 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Pool.cpp">
+      <Filter>Kernel Pool</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
