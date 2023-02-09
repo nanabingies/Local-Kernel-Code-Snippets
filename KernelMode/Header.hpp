@@ -430,11 +430,56 @@ typedef NTSTATUS(NTAPI* lpNtCreateThreadEx)(
 	OUT		PVOID				lpBytesBuffer
 	);
 
-extern "C" NTSTATUS ZwQuerySystemInformation(
-	ULONG SystemInformationClass,
-	PVOID SystemInformation,
-	ULONG SystemInformationLength,
-	ULONG * ReturnLength);
+typedef enum _SYSTEM_INFORMATION_CLASS {
+
+	SystemBasicInformation,
+	SystemProcessorInformation,
+	SystemPerformanceInformation,
+	SystemTimeOfDayInformation,
+	SystemPathInformation,
+	SystemProcessInformation,
+	SystemCallCountInformation,
+	SystemDeviceInformation,
+	SystemProcessorPerformanceInformation,
+	SystemFlagsInformation,
+	SystemCallTimeInformation,
+	SystemModuleInformation,
+	SystemLocksInformation,
+	SystemStackTraceInformation,
+	SystemPagedPoolInformation,
+	SystemNonPagedPoolInformation,
+	SystemHandleInformation,
+	SystemObjectInformation,
+	SystemPageFileInformation,
+	SystemVdmInstemulInformation,
+	SystemVdmBopInformation,
+	SystemFileCacheInformation,
+	SystemPoolTagInformation,
+	SystemInterruptInformation,
+	SystemDpcBehaviorInformation,
+	SystemFullMemoryInformation,
+	SystemLoadGdiDriverInformation,
+	SystemUnloadGdiDriverInformation,
+	SystemTimeAdjustmentInformation,
+	SystemSummaryMemoryInformation,
+	SystemNextEventIdInformation,
+	SystemEventIdsInformation,
+	SystemCrashDumpInformation,
+	SystemExceptionInformation,
+	SystemCrashDumpStateInformation,
+	SystemKernelDebuggerInformation,
+	SystemContextSwitchInformation,
+	SystemRegistryQuotaInformation,
+	SystemExtendServiceTableInformation,
+	SystemPrioritySeperation,
+	SystemPlugPlayBusInformation,
+	SystemDockInformation,
+	SystemPowerInformation,
+	SystemProcessorSpeedInformation,
+	SystemCurrentTimeZoneInformation,
+	SystemLookasideInformation
+
+} SYSTEM_INFORMATION_CLASS, * PSYSTEM_INFORMATION_CLASS;
 
 //#define MAXIMUM_FILENAME_LENGTH 255 
 typedef unsigned short WORD;
@@ -505,6 +550,42 @@ typedef struct _LDR_DATA_TABLE_ENTRY {
 	LIST_ENTRY ServiceTagLinks;
 	LIST_ENTRY StaticLinks;
 } LDR_DATA_TABLE_ENTRY, * PLDR_DATA_TABLE_ENTRY;
+
+typedef struct _SYSTEM_THREAD_INFORMATION {
+	LARGE_INTEGER UserTime;
+	LARGE_INTEGER CreateTime;
+	ULONG WaitTime;
+	PVOID StartAddress;
+	CLIENT_ID ClientId;
+	KPRIORITY Priority;
+	LONG BasePriority;
+	ULONG ContextSwitchCount;
+	ULONG State;
+	KWAIT_REASON WaitReason;
+#if defined(_M_X64) || defined(_M_ARM64) // TODO:ARM64
+	LARGE_INTEGER unk;
+#endif
+} SYSTEM_THREAD_INFORMATION, * PSYSTEM_THREAD_INFORMATION;
+
+typedef  struct  _SYSTEM_PROCESS_INFORMATION
+{
+	ULONG NextEntryOffset;
+	ULONG NumberOfThreads;
+	LARGE_INTEGER Reserved[3];
+	LARGE_INTEGER CreateTime;
+	LARGE_INTEGER UserTime;
+	LARGE_INTEGER KernelTime;
+	UNICODE_STRING ImageName;
+	KPRIORITY BasePriority;
+	HANDLE UniqueProcessId;
+	HANDLE ParentProcessId;
+	ULONG HandleCount;
+	LPCWSTR Reserved2[2];
+	ULONG PrivatePageCount;
+	VM_COUNTERS VirtualMemoryCounters;
+	IO_COUNTERS IoCounters;
+	SYSTEM_THREAD_INFORMATION Threads[ANYSIZE_ARRAY];
+}SYSTEM_PROCESS_INFORMATION, * PSYSTEM_PROCESS_INFORMATION;
 
 typedef unsigned char BYTE;
 
@@ -704,38 +785,13 @@ KeInsertQueueApc(
 	_In_ KPRIORITY Increment
 );
 
-typedef struct _SYSTEM_THREAD_INFORMATION {
-	LARGE_INTEGER UserTime;
-	LARGE_INTEGER CreateTime;
-	ULONG WaitTime;
-	PVOID StartAddress;
-	CLIENT_ID ClientId;
-	KPRIORITY Priority;
-	LONG BasePriority;
-	ULONG ContextSwitchCount;
-	ULONG State;
-	KWAIT_REASON WaitReason;
-#if defined(_M_X64) || defined(_M_ARM64) // TODO:ARM64
-	LARGE_INTEGER unk;
-#endif
-} SYSTEM_THREAD_INFORMATION, * PSYSTEM_THREAD_INFORMATION;
-
-typedef  struct  _SYSTEM_PROCESS_INFORMATION
-{
-	ULONG NextEntryOffset;
-	ULONG NumberOfThreads;
-	LARGE_INTEGER Reserved[3];
-	LARGE_INTEGER CreateTime;
-	LARGE_INTEGER UserTime;
-	LARGE_INTEGER KernelTime;
-	UNICODE_STRING ImageName;
-	KPRIORITY BasePriority;
-	HANDLE UniqueProcessId;
-	HANDLE ParentProcessId;
-	ULONG HandleCount;
-	LPCWSTR Reserved2[2];
-	ULONG PrivatePageCount;
-	VM_COUNTERS VirtualMemoryCounters;
-	IO_COUNTERS IoCounters;
-	SYSTEM_THREAD_INFORMATION Threads[ANYSIZE_ARRAY];
-}SYSTEM_PROCESS_INFORMATION, * PSYSTEM_PROCESS_INFORMATION;
+extern "C"
+NTKERNELAPI
+NTSTATUS
+NTAPI
+ZwQuerySystemInformation(
+	_In_      SYSTEM_INFORMATION_CLASS SystemInformationClass,
+	_Inout_   PVOID                    SystemInformation,
+	_In_      ULONG                    SystemInformationLength,
+	_Out_opt_ PULONG                   ReturnLength
+);
