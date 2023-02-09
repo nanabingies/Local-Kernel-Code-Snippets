@@ -3,6 +3,8 @@
 
 namespace Pool {
 
+#define IOCTL_POOL CTL_CODE(FILE_DEVICE_UNKNOWN, 0x900, METHOD_BUFFERED, FILE_READ_ACCESS | FILE_WRITE_ACCESS)
+
 	typedef struct _SYSTEM_POOLTAG {
 		union {
 			UCHAR Tag[4];

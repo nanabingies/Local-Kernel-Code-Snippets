@@ -1,4 +1,6 @@
 #include "Header.hpp"
+#include "Pool.hpp"
+#pragma warning(disable : 4100)
 
 EXTERN_C{
 	DRIVER_DISPATCH DefaultDispatch;
@@ -43,4 +45,53 @@ EXTERN_C VOID DriverUnload(_In_ PDRIVER_OBJECT DriverObject) {
 	RtlInitUnicodeString(&dosName, DOSDEVICE_NAME);
 	IoDeleteSymbolicLink(&dosName);
 	IoDeleteDevice(DriverObject->DeviceObject);
+}
+
+_Function_class_(DRIVER_DISPATCH)
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_same_
+EXTERN_C NTSTATUS DefaultDispatch(_In_ PDEVICE_OBJECT DeviceObject, _In_ PIRP Irp) {
+	Irp->IoStatus.Status = STATUS_SUCCESS;
+	Irp->IoStatus.Information = 0;
+
+	IoCompleteRequest(Irp, IO_NO_INCREMENT);
+	return STATUS_SUCCESS;
+}
+
+_Function_class_(DRIVER_DISPATCH)
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_same_
+EXTERN_C NTSTATUS IoctlDispatch(_In_ PDEVICE_OBJECT DeviceObject, _In_ PIRP Irp) {
+
+	auto ioStackLocation = IoGetCurrentIrpStackLocation(Irp);
+	auto ctlcode = ioStackLocation->Parameters.DeviceIoControl.IoControlCode;
+	NTSTATUS ns = STATUS_SUCCESS;
+
+	switch (ctlcode) {
+	case IOCTL_POOL: {
+		DbgPrint("[+] In IOCTL_POOL\n");
+		Pool::SYSTEM_POOLTAG_INFORMATION* PoolTag = { 0 };
+		ns = Pool::GetPoolTagInfo(&PoolTag);
+		if (!NT_SUCCESS(ns)) {
+			DbgPrint("[%s] GetPoolTagInfo failed with error : %X", __FUNCTION__, ns);
+			break;
+		}
+		
+		ns = Pool::PrintPoolInfo(PoolTag);
+		if (!NT_SUCCESS(ns)) {
+			DbgPrint("[%s] PrintPoolInfo failed with error : %X", __FUNCTION__, ns);
+			break;
+		}
+
+		break;
+	}
+	default:
+		break;
+	}
+
+	Irp->IoStatus.Status = ns;
+	Irp->IoStatus.Information = 0;
+	
+	IoCompleteRequest(Irp, IO_NO_INCREMENT);
+	return ns;
 }

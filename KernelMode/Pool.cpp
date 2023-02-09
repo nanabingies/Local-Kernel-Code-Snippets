@@ -30,13 +30,15 @@ namespace Pool {
 
 		auto Ptr = pPoolTagInfo;
 		auto count = pPoolTagInfo->Count;
-		auto i = 0;
+		ULONG i = 0;
 
 		do {
 			auto PoolTag = Ptr->TagInfo[i].Tag;
 			DbgPrint("\t[+] Tag : %s\n", PoolTag);
-			i++;
+			++i;
 			--count;
-		} while (count >= 0);
+		} while (i < count);
+
+		return STATUS_SUCCESS;
 	}
 };

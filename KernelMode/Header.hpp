@@ -8,7 +8,7 @@
 
 #define DOSDEVICE_NAME	L"\\DosDevices\\KernelMode"
 #define DRIVER_NAME		L"\\Device\\KernelMode"
-#define POOLTAGINFO		L'pTAG'
+#define POOLTAGINFO		'pTAG'
 
 //0x430 bytes (sizeof)
 struct _KTHREAD
@@ -475,7 +475,7 @@ typedef enum _SYSTEM_INFORMATION_CLASS {
 	SystemPrioritySeperation,
 	SystemPlugPlayBusInformation,
 	SystemDockInformation,
-	SystemPowerInformation,
+	//SystemPowerInformation,
 	SystemProcessorSpeedInformation,
 	SystemCurrentTimeZoneInformation,
 	SystemLookasideInformation
