@@ -1,0 +1,39 @@
+#include "Header.hpp"
+
+EXTERN_C{
+	PDRIVER_DISPATCH DefaultDispatch;
+	PDRIVER_DISPATCH IoctlDispatch;
+	PDRIVER_UNLOAD DriverUnload;
+};
+
+EXTERN_C NTSTATUS DriverEntry(_In_ PDRIVER_OBJECT DriverObject, _In_ PUNICODE_STRING RegistryPath) {
+
+	UNICODE_STRING DosDeviceName = RTL_CONSTANT_STRING(DOSDEVICE_NAME);
+	UNICODE_STRING DriverName = RTL_CONSTANT_STRING(DRIVER_NAME);
+
+	PDEVICE_OBJECT DeviceObject{};
+
+	auto ns = IoCreateDevice(DriverObject, 0, &DriverName, FILE_DEVICE_UNKNOWN, FILE_DEVICE_SECURE_OPEN,
+		FALSE, (PDEVICE_OBJECT*)&DeviceObject);
+	if (!NT_SUCCESS(ns)) {
+		DbgPrint("[-] IoCreateDevice failed.\n");
+		return STATUS_FAILED_DRIVER_ENTRY;
+	}
+
+	ns = IoCreateSymbolicLink(&DosDeviceName, &DriverName);
+	if (!NT_SUCCESS(ns)) {
+		DbgPrint("[-] IoCreateSymbolicLink failed.\n");
+		IoDeleteDevice(DeviceObject);
+		return STATUS_FAILED_DRIVER_ENTRY;
+	}
+
+	for (auto idx = 0; idx < IRP_MJ_MAXIMUM_FUNCTION; ++idx) {
+		DriverObject->MajorFunction[idx] = DefaultDispatch;
+	}
+	DriverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = IoctlDispatch;
+	DriverObject->DriverUnload = DriverUnload;
+
+	DriverObject->Flags &= DO_BUFFERED_IO;
+
+	return STATUS_SUCCESS;
+}
