@@ -16,6 +16,9 @@
     <Filter Include="Kernel Pool">
       <UniqueIdentifier>{57f0826e-c2ed-4e28-bccb-bc92237ae715}</UniqueIdentifier>
     </Filter>
+    <Filter Include="IRP Major Functions">
+      <UniqueIdentifier>{dfa3c02d-db02-4e52-955d-75849a141368}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Inf Include="KernelMode.inf">
@@ -29,6 +32,9 @@
     <ClInclude Include="Pool.hpp">
       <Filter>Kernel Pool</Filter>
     </ClInclude>
+    <ClInclude Include="Hijack.hpp">
+      <Filter>IRP Major Functions</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -36,6 +42,9 @@
     </ClCompile>
     <ClCompile Include="Pool.cpp">
       <Filter>Kernel Pool</Filter>
+    </ClCompile>
+    <ClCompile Include="Hijack.cpp">
+      <Filter>IRP Major Functions</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

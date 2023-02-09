@@ -149,9 +149,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Header.hpp" />
+    <ClInclude Include="Hijack.hpp" />
     <ClInclude Include="Pool.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Hijack.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Pool.cpp" />
   </ItemGroup>
