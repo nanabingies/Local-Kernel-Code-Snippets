@@ -478,7 +478,8 @@ typedef enum _SYSTEM_INFORMATION_CLASS {
 	//SystemPowerInformation,
 	SystemProcessorSpeedInformation,
 	SystemCurrentTimeZoneInformation,
-	SystemLookasideInformation
+	SystemLookasideInformation,
+	SystemBigPoolInformation = 0x42
 
 } SYSTEM_INFORMATION_CLASS, * PSYSTEM_INFORMATION_CLASS;
 
@@ -796,3 +797,15 @@ ZwQuerySystemInformation(
 	_In_      ULONG                    SystemInformationLength,
 	_Out_opt_ PULONG                   ReturnLength
 );
+
+_Function_class_(DRIVER_DISPATCH)
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_same_
+EXTERN_C NTSTATUS DefaultDispatch(_In_ PDEVICE_OBJECT, _In_ PIRP);
+
+_Function_class_(DRIVER_DISPATCH)
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_same_
+EXTERN_C NTSTATUS IoctlDispatch(_In_ PDEVICE_OBJECT, _In_ PIRP);
+
+EXTERN_C VOID DriverUnload(_In_ PDRIVER_OBJECT);

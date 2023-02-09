@@ -2,12 +2,6 @@
 #include "Pool.hpp"
 #pragma warning(disable : 4100)
 
-EXTERN_C{
-	DRIVER_DISPATCH DefaultDispatch;
-	DRIVER_DISPATCH IoctlDispatch;
-	DRIVER_UNLOAD DriverUnload;
-};
-
 EXTERN_C NTSTATUS DriverEntry(_In_ PDRIVER_OBJECT DriverObject, _In_ PUNICODE_STRING RegistryPath) {
 
 	UNICODE_STRING DosDeviceName = RTL_CONSTANT_STRING(DOSDEVICE_NAME);
@@ -35,7 +29,8 @@ EXTERN_C NTSTATUS DriverEntry(_In_ PDRIVER_OBJECT DriverObject, _In_ PUNICODE_ST
 	DriverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = IoctlDispatch;
 	DriverObject->DriverUnload = DriverUnload;
 
-	DriverObject->Flags &= DO_BUFFERED_IO;
+	DriverObject->Flags &= ~DO_DEVICE_INITIALIZING;
+	DriverObject->Flags |= DO_BUFFERED_IO;
 
 	return STATUS_SUCCESS;
 }
@@ -70,19 +65,10 @@ EXTERN_C NTSTATUS IoctlDispatch(_In_ PDEVICE_OBJECT DeviceObject, _In_ PIRP Irp)
 	switch (ctlcode) {
 	case IOCTL_POOL: {
 		DbgPrint("[+] In IOCTL_POOL\n");
-		Pool::SYSTEM_POOLTAG_INFORMATION* PoolTag = { 0 };
-		ns = Pool::GetPoolTagInfo(&PoolTag);
-		if (!NT_SUCCESS(ns)) {
-			DbgPrint("[%s] GetPoolTagInfo failed with error : %X", __FUNCTION__, ns);
-			break;
+		Pool::SYSTEM_BIGPOOL_INFORMATION* BigPoolInfo;
+		if (NT_SUCCESS(Pool::GetBigPoolInfo(&BigPoolInfo))) {
+			Pool::PrintBigPoolInfo(BigPoolInfo);
 		}
-		
-		ns = Pool::PrintPoolInfo(PoolTag);
-		if (!NT_SUCCESS(ns)) {
-			DbgPrint("[%s] PrintPoolInfo failed with error : %X", __FUNCTION__, ns);
-			break;
-		}
-
 		break;
 	}
 	default:

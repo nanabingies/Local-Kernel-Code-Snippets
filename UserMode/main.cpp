@@ -9,13 +9,11 @@ int main(int argc, char* argv[]) {
 
 	const auto hHandle = ::CreateFile(DRIVER_NAME, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE,
 		__nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-	if (hHandle == INVALID_HANDLE_VALUE) {
-		printf("[-] CreateFile failed.\n");
-		return -1;
-	}
+	assert(hHandle != INVALID_HANDLE_VALUE, "CreateFile failed.\n");
 
 	DWORD lpBytesReturned = 0;
 	::DeviceIoControl(hHandle, IOCTL_POOL, __nullptr, 0, __nullptr, 0, &lpBytesReturned, __nullptr);
+	::CloseHandle(hHandle);
 
 	return 0;
 }
