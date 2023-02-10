@@ -17,7 +17,13 @@ namespace KernelHook {
 
 	NTSTATUS HookZwReadFile(_In_ HANDLE, _In_opt_ HANDLE, _In_opt_ PIO_APC_ROUTINE, _In_opt_ PVOID, _Out_ PIO_STATUS_BLOCK,
 		_Out_ PVOID, _In_ ULONG, _In_opt_ PLARGE_INTEGER, _In_opt_ PULONG);
+	
 	template <typename T>
-	NTSTATUS PrepareMdl(_In_ T, _Out_ PMDL);
-	NTSTATUS SetupHook(_In_ PMDL);
+	NTSTATUS PrepareMdl(_In_ T, _Out_ PMDL*);
+
+	template <typename T>
+	NTSTATUS SetupHook(_In_ T, _In_ PMDL);
+
+	template <typename T>
+	NTSTATUS PrepareAddress(_In_ PWSTR, _Out_ T);
 }
