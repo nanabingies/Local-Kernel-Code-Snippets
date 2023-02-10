@@ -38,7 +38,8 @@ namespace KernelHook {
 
 		DbgPrint("[%s] <== \n", __FUNCTION__);
 
-		return OriginalZwReadFile(FileHandle, Event, ApcRoutine, ApcContext, IoStatusBlock, Buffer, Length, ByteOffset, Key);
+		//return OriginalZwReadFile(FileHandle, Event, ApcRoutine, ApcContext, IoStatusBlock, Buffer, Length, ByteOffset, Key);
+		return STATUS_SUCCESS;
 	}
 
 	template <typename T>
@@ -59,10 +60,10 @@ namespace KernelHook {
 	}
 
 	template <typename T>
-	NTSTATUS SetupHook(_In_ T RoutineAddress, _In_ PMDL Mdl) {
+	NTSTATUS SetupHook(_In_ T RoutineAddress, _In_ PMDL Mdl, _Out_ T* VirtualAddress) {
 
-		auto VirtualAddress = MmMapLockedPagesSpecifyCache(Mdl, KernelMode, MmNonCached, NULL, 0, NormalPagePriority);
-		if (VirtualAddress == __nullptr) {
+		*VirtualAddress = MmMapLockedPagesSpecifyCache(Mdl, KernelMode, MmNonCached, NULL, 0, NormalPagePriority);
+		if (*VirtualAddress == __nullptr) {
 			DbgPrint("[-] MmMapLockedPagesSpecifyCache failed.\n");
 			return STATUS_INSUFFICIENT_RESOURCES;
 		}
@@ -74,7 +75,7 @@ namespace KernelHook {
 
 		__try {
 			// try and change address
-			RtlCopyMemory(&VirtualAddress, &shell_code, sizeof(shell_code));
+			RtlCopyMemory(&(*VirtualAddress), &shell_code, sizeof(shell_code));
 		}
 		__except (EXCEPTION_EXECUTE_HANDLER) {
 			DbgPrint("[-] Failed to write shellcode to memory\n");
@@ -96,14 +97,15 @@ namespace KernelHook {
 			return STATUS_NOT_FOUND;
 		}
 
-		SIZE_T NumberOfBytesTransferred = 0;
+		/*SIZE_T NumberOfBytesTransferred = 0;
 		MM_COPY_ADDRESS CopyAddress{};
 		CopyAddress.VirtualAddress = *RoutineAddress;
 		auto ns = MmCopyMemory(&OrigAddress, CopyAddress, sizeof(OrigAddress), MM_COPY_MEMORY_VIRTUAL, &NumberOfBytesTransferred);
 		if (!NT_SUCCESS(ns) || NumberOfBytesTransferred != sizeof(OrigAddress)) {
 			DbgPrint("[-] MmCopyMemory failed.\n");
 			return ns;
-		}
+		}*/
+		RtlCopyMemory(&OrigAddress, *RoutineAddress, sizeof(OrigAddress));
 
 		return STATUS_SUCCESS;
 	}

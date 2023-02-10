@@ -22,7 +22,7 @@ namespace KernelHook {
 	NTSTATUS PrepareMdl(_In_ T, _Out_ PMDL*);
 
 	template <typename T>
-	NTSTATUS SetupHook(_In_ T, _In_ PMDL);
+	NTSTATUS SetupHook(_In_ T, _In_ PMDL, _Out_ T*);
 
 	template <typename T>
 	NTSTATUS PrepareAddress(_In_ PWSTR, _Out_ T*);

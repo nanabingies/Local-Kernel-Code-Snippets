@@ -33,7 +33,26 @@ EXTERN_C NTSTATUS DriverEntry(_In_ PDRIVER_OBJECT DriverObject, _In_ PUNICODE_ST
 	DriverObject->Flags &= ~DO_DEVICE_INITIALIZING;
 	DriverObject->Flags |= DO_BUFFERED_IO;
 
-	
+	PVOID RoutineAddress = 0x0;
+	PVOID VirtualAddress = 0x0;
+	PMDL Mdl;
+	if (NT_SUCCESS(PrepareAddress<PVOID>(L"ZwReadFile", &RoutineAddress))) {
+		if (NT_SUCCESS(PrepareMdl<PVOID>(RoutineAddress, &Mdl))) {
+			if (NT_SUCCESS(SetupHook<PVOID>(RoutineAddress, Mdl, &VirtualAddress))) {
+				DbgPrint("[+] Done ....\n");
+				return STATUS_SUCCESS;
+			}
+			else {
+				return STATUS_FAILED_DRIVER_ENTRY;
+			}
+		}
+		else {
+			return STATUS_FAILED_DRIVER_ENTRY;
+		}
+	}
+	else {
+		return STATUS_FAILED_DRIVER_ENTRY;
+	}
 
 	return STATUS_SUCCESS;
 }
