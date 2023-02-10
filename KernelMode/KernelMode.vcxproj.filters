@@ -52,5 +52,8 @@
     <ClCompile Include="Hijack.cpp">
       <Filter>IRP Major Functions</Filter>
     </ClCompile>
+    <ClCompile Include="KernelHook.cpp">
+      <Filter>Kernel Hook</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

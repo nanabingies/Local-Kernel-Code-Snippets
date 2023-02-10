@@ -155,6 +155,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Hijack.cpp" />
+    <ClCompile Include="KernelHook.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Pool.cpp" />
   </ItemGroup>
