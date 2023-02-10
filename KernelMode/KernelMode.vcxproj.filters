@@ -19,6 +19,9 @@
     <Filter Include="IRP Major Functions">
       <UniqueIdentifier>{dfa3c02d-db02-4e52-955d-75849a141368}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Kernel Hook">
+      <UniqueIdentifier>{48c3b53c-7137-4005-b76b-0a0c0202cf32}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Inf Include="KernelMode.inf">
@@ -34,6 +37,9 @@
     </ClInclude>
     <ClInclude Include="Hijack.hpp">
       <Filter>IRP Major Functions</Filter>
+    </ClInclude>
+    <ClInclude Include="KernelHook.hpp">
+      <Filter>Kernel Hook</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
