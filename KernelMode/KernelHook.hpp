@@ -25,5 +25,7 @@ namespace KernelHook {
 	NTSTATUS SetupHook(_In_ T, _In_ PMDL);
 
 	template <typename T>
-	NTSTATUS PrepareAddress(_In_ PWSTR, _Out_ T);
+	NTSTATUS PrepareAddress(_In_ PWSTR, _Out_ T*);
+
+	NTSTATUS RestoreAddress(_In_ PVOID);
 }

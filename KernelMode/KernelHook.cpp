@@ -3,7 +3,7 @@
 namespace KernelHook {
 
 	pZwReadFile OriginalZwReadFile{};
-	CHAR OrigAddress[0x8] = { 0 };
+	unsigned char OrigAddress[0x10] = { 0 };
 
 	CHAR shell_code[] = {
 		// push rcx
@@ -98,13 +98,18 @@ namespace KernelHook {
 
 		SIZE_T NumberOfBytesTransferred = 0;
 		MM_COPY_ADDRESS CopyAddress{};
-		CopyAddress.VirtualAddress = OrigAddress;
-		auto ns = MmCopyMemory(*RoutineAddress, CopyAddress, sizeof(OrigAddress), MM_COPY_MEMORY_VIRTUAL, &NumberOfBytesTransferred);
+		CopyAddress.VirtualAddress = *RoutineAddress;
+		auto ns = MmCopyMemory(&OrigAddress, CopyAddress, sizeof(OrigAddress), MM_COPY_MEMORY_VIRTUAL, &NumberOfBytesTransferred);
 		if (!NT_SUCCESS(ns) || NumberOfBytesTransferred != sizeof(OrigAddress)) {
 			DbgPrint("[-] MmCopyMemory failed.\n");
 			return ns;
 		}
 
+		return STATUS_SUCCESS;
+	}
+
+	NTSTATUS RestoreAddress(_In_ PVOID RoutineAddress) {
+		RtlCopyMemory(RoutineAddress, OrigAddress, sizeof(OrigAddress));
 		return STATUS_SUCCESS;
 	}
 }
