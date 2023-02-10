@@ -2,5 +2,21 @@
 #include "Header.hpp"
 
 namespace KernelHook {
+	
+	using pZwReadFile = NTSYSAPI NTSTATUS (NTAPI*)(
+		_In_ HANDLE           FileHandle,
+		_In_opt_ HANDLE           Event,
+		_In_opt_ PIO_APC_ROUTINE  ApcRoutine,
+		_In_opt_ PVOID            ApcContext,
+		_Out_ PIO_STATUS_BLOCK IoStatusBlock,
+		_Out_ PVOID            Buffer,
+		_In_ ULONG            Length,
+		_In_opt_ PLARGE_INTEGER   ByteOffset,
+		_In_opt_ PULONG           Key
+	);
 
+	NTSTATUS HookZwReadFile(_In_ HANDLE, _In_opt_ HANDLE, _In_opt_ PIO_APC_ROUTINE, _In_opt_ PVOID, _Out_ PIO_STATUS_BLOCK,
+		_Out_ PVOID, _In_ ULONG, _In_opt_ PLARGE_INTEGER, _In_opt_ PULONG);
+	NTSTATUS PrepareMdl(_In_ PVOID, _Out_ PMDL);
+	NTSTATUS SetupHook(_In_ PMDL);
 }
