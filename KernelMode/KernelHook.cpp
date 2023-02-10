@@ -1,11 +1,16 @@
 #include "KernelHook.hpp"
+#pragma warning(disable : 4100)
+#pragma warning(disable : 4789)
 
 namespace KernelHook {
 
-	pZwReadFile OriginalZwReadFile{};
-	unsigned char OrigAddress[0x10] = { 0 };
+	extern "C" void _ignore_icall(void);
 
-	CHAR shell_code[] = {
+	pNtReadFile OriginalZwReadFile{};
+	unsigned char OrigAddress[0x10] = { 0 };
+	PVOID g_Addr = 0;
+
+	unsigned char shell_code[] = {
 		// push rcx
 		0x51,
 
@@ -20,7 +25,7 @@ namespace KernelHook {
 		0xC3
 	};
 
-	NTSTATUS HookZwReadFile(_In_ HANDLE           FileHandle,
+	NTSTATUS HookNtReadFile(_In_ HANDLE           FileHandle,
 		_In_opt_ HANDLE           Event,
 		_In_opt_ PIO_APC_ROUTINE  ApcRoutine,
 		_In_opt_ PVOID            ApcContext,
@@ -38,15 +43,18 @@ namespace KernelHook {
 
 		DbgPrint("[%s] <== \n", __FUNCTION__);
 
+		//NT_ASSERT(g_Addr != NULL);
+		//RestoreAddress(g_Addr);
+
 		//return OriginalZwReadFile(FileHandle, Event, ApcRoutine, ApcContext, IoStatusBlock, Buffer, Length, ByteOffset, Key);
 		return STATUS_SUCCESS;
 	}
 
-	template <typename T>
-	NTSTATUS PrepareMdl(_In_ T RoutineAddress, _Out_ PMDL* Mdl) {
+	//template <typename T>
+	NTSTATUS PrepareMdl(_In_ PVOID RoutineAddress, _Out_ PMDL* Mdl) {
 		*Mdl = { 0 };
 
-		*Mdl = IoAllocateMdl(RoutineAddress, sizeof(T), FALSE, FALSE, NULL);
+		*Mdl = IoAllocateMdl(RoutineAddress, sizeof(PVOID), FALSE, FALSE, NULL);
 		if (*Mdl == __nullptr) {
 			DbgPrint("[-] IoAllocateMdl failed\n");
 			return STATUS_UNSUCCESSFUL;
@@ -59,23 +67,23 @@ namespace KernelHook {
 		return STATUS_SUCCESS;
 	}
 
-	template <typename T>
-	NTSTATUS SetupHook(_In_ T RoutineAddress, _In_ PMDL Mdl, _Out_ T* VirtualAddress) {
+	//template <typename T>
+	NTSTATUS SetupHook(_In_ PVOID RoutineAddress, _In_ PMDL Mdl) {
 
-		*VirtualAddress = MmMapLockedPagesSpecifyCache(Mdl, KernelMode, MmNonCached, NULL, 0, NormalPagePriority);
-		if (*VirtualAddress == __nullptr) {
+		auto VirtualAddress = MmMapLockedPagesSpecifyCache(Mdl, KernelMode, MmNonCached, NULL, 0, NormalPagePriority);
+		if (VirtualAddress == __nullptr) {
 			DbgPrint("[-] MmMapLockedPagesSpecifyCache failed.\n");
 			return STATUS_INSUFFICIENT_RESOURCES;
 		}
 
 		MmProtectMdlSystemAddress(Mdl, PAGE_EXECUTE_READWRITE);
 
-		uintptr_t HookAddress = &HookZwReadFile;
+		uintptr_t HookAddress = (uintptr_t)&HookNtReadFile;
 		RtlCopyMemory(&shell_code[0x3], &HookAddress, sizeof(uintptr_t));
 
 		__try {
 			// try and change address
-			RtlCopyMemory(&(*VirtualAddress), &shell_code, sizeof(shell_code));
+			RtlCopyMemory(VirtualAddress, shell_code, sizeof(shell_code));
 		}
 		__except (EXCEPTION_EXECUTE_HANDLER) {
 			DbgPrint("[-] Failed to write shellcode to memory\n");
@@ -85,8 +93,8 @@ namespace KernelHook {
 		return STATUS_SUCCESS;
 	}
 
-	template <typename T>
-	NTSTATUS PrepareAddress(_In_ PWSTR RoutineName, _Out_ T* RoutineAddress) {
+	//template <typename T>
+	NTSTATUS PrepareAddress(_In_ PWSTR RoutineName, _Out_ PVOID* RoutineAddress) {
 		UNICODE_STRING usRoutineName{};
 		RtlInitUnicodeString(&usRoutineName, RoutineName);
 
@@ -96,22 +104,17 @@ namespace KernelHook {
 			DbgPrint("[-] MmGetSystemRoutineAddress failed.\n");
 			return STATUS_NOT_FOUND;
 		}
+		DbgPrint("[+] %wZ : 0x%p\n", &usRoutineName, *RoutineAddress);
 
-		/*SIZE_T NumberOfBytesTransferred = 0;
-		MM_COPY_ADDRESS CopyAddress{};
-		CopyAddress.VirtualAddress = *RoutineAddress;
-		auto ns = MmCopyMemory(&OrigAddress, CopyAddress, sizeof(OrigAddress), MM_COPY_MEMORY_VIRTUAL, &NumberOfBytesTransferred);
-		if (!NT_SUCCESS(ns) || NumberOfBytesTransferred != sizeof(OrigAddress)) {
-			DbgPrint("[-] MmCopyMemory failed.\n");
-			return ns;
-		}*/
 		RtlCopyMemory(&OrigAddress, *RoutineAddress, sizeof(OrigAddress));
+		g_Addr = *RoutineAddress;
 
 		return STATUS_SUCCESS;
 	}
 
-	NTSTATUS RestoreAddress(_In_ PVOID RoutineAddress) {
+	VOID RestoreAddress(_In_ PVOID RoutineAddress) {
 		RtlCopyMemory(RoutineAddress, OrigAddress, sizeof(OrigAddress));
-		return STATUS_SUCCESS;
+		
+		OriginalZwReadFile = reinterpret_cast<pNtReadFile>(RoutineAddress);
 	}
 }

@@ -1,6 +1,5 @@
 #include "Header.hpp"
 #include "KernelHook.hpp"
-using namespace KernelHook;
 #pragma warning(disable : 4100)
 
 EXTERN_C NTSTATUS DriverEntry(_In_ PDRIVER_OBJECT DriverObject, _In_ PUNICODE_STRING RegistryPath) {
@@ -34,11 +33,11 @@ EXTERN_C NTSTATUS DriverEntry(_In_ PDRIVER_OBJECT DriverObject, _In_ PUNICODE_ST
 	DriverObject->Flags |= DO_BUFFERED_IO;
 
 	PVOID RoutineAddress = 0x0;
-	PVOID VirtualAddress = 0x0;
+	//PVOID VirtualAddress = 0x0;
 	PMDL Mdl;
-	if (NT_SUCCESS(PrepareAddress<PVOID>(L"ZwReadFile", &RoutineAddress))) {
-		if (NT_SUCCESS(PrepareMdl<PVOID>(RoutineAddress, &Mdl))) {
-			if (NT_SUCCESS(SetupHook<PVOID>(RoutineAddress, Mdl, &VirtualAddress))) {
+	if (NT_SUCCESS(KernelHook::PrepareAddress(L"ZwReadFile", &RoutineAddress))) {
+		if (NT_SUCCESS(KernelHook::PrepareMdl(RoutineAddress, &Mdl))) {
+			if (NT_SUCCESS(KernelHook::SetupHook(RoutineAddress, Mdl))) {
 				DbgPrint("[+] Done ....\n");
 				return STATUS_SUCCESS;
 			}
@@ -54,7 +53,7 @@ EXTERN_C NTSTATUS DriverEntry(_In_ PDRIVER_OBJECT DriverObject, _In_ PUNICODE_ST
 		return STATUS_FAILED_DRIVER_ENTRY;
 	}
 
-	return STATUS_SUCCESS;
+	//return STATUS_SUCCESS;
 }
 
 EXTERN_C VOID DriverUnload(_In_ PDRIVER_OBJECT DriverObject) {
@@ -80,8 +79,8 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
 EXTERN_C NTSTATUS IoctlDispatch(_In_ PDEVICE_OBJECT DeviceObject, _In_ PIRP Irp) {
 
-	auto ioStackLocation = IoGetCurrentIrpStackLocation(Irp);
-	auto ctlcode = ioStackLocation->Parameters.DeviceIoControl.IoControlCode;
+	//auto ioStackLocation = IoGetCurrentIrpStackLocation(Irp);
+	//auto ctlcode = ioStackLocation->Parameters.DeviceIoControl.IoControlCode;
 	NTSTATUS ns = STATUS_SUCCESS;
 
 	Irp->IoStatus.Status = ns;
