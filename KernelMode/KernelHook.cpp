@@ -7,7 +7,7 @@ namespace KernelHook {
 	extern "C" void _ignore_icall(void);
 
 	pNtReadFile OriginalZwReadFile{};
-	unsigned char OrigAddress[0x10] = { 0 };
+	unsigned char OrigBytes[0x10] = { 0 };
 	PVOID g_Addr = 0;
 
 	unsigned char shell_code[] = {
@@ -42,9 +42,6 @@ namespace KernelHook {
 		DbgPrint("\t[>] ApcContext : %p\n", ApcContext);
 
 		DbgPrint("[%s] <== \n", __FUNCTION__);
-
-		//NT_ASSERT(g_Addr != NULL);
-		//RestoreAddress(g_Addr);
 
 		//return OriginalZwReadFile(FileHandle, Event, ApcRoutine, ApcContext, IoStatusBlock, Buffer, Length, ByteOffset, Key);
 		return STATUS_SUCCESS;
@@ -106,14 +103,14 @@ namespace KernelHook {
 		}
 		DbgPrint("[+] %wZ : 0x%p\n", &usRoutineName, *RoutineAddress);
 
-		RtlCopyMemory(&OrigAddress, *RoutineAddress, sizeof(OrigAddress));
+		RtlCopyMemory(&OrigBytes, *RoutineAddress, sizeof(OrigBytes));
 		g_Addr = *RoutineAddress;
 
 		return STATUS_SUCCESS;
 	}
 
-	VOID RestoreAddress(_In_ PVOID RoutineAddress) {
-		RtlCopyMemory(RoutineAddress, OrigAddress, sizeof(OrigAddress));
+	VOID RestoreHook(_In_ PVOID RoutineAddress) {
+		RtlCopyMemory(RoutineAddress, OrigBytes, sizeof(OrigBytes));
 		
 		OriginalZwReadFile = reinterpret_cast<pNtReadFile>(RoutineAddress);
 	}
