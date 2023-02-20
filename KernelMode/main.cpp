@@ -1,5 +1,4 @@
 #include "Header.hpp"
-#include "KernelHook.hpp"
 #pragma warning(disable : 4100)
 
 EXTERN_C NTSTATUS DriverEntry(_In_ PDRIVER_OBJECT DriverObject, _In_ PUNICODE_STRING RegistryPath) {
@@ -32,28 +31,7 @@ EXTERN_C NTSTATUS DriverEntry(_In_ PDRIVER_OBJECT DriverObject, _In_ PUNICODE_ST
 	DriverObject->Flags &= ~DO_DEVICE_INITIALIZING;
 	DriverObject->Flags |= DO_BUFFERED_IO;
 
-	PVOID RoutineAddress = 0x0;
-	//PVOID VirtualAddress = 0x0;
-	PMDL Mdl;
-	if (NT_SUCCESS(KernelHook::PrepareAddress(L"ZwReadFile", &RoutineAddress))) {
-		if (NT_SUCCESS(KernelHook::PrepareMdl(RoutineAddress, &Mdl))) {
-			if (NT_SUCCESS(KernelHook::SetupHook(RoutineAddress, Mdl))) {
-				DbgPrint("[+] Done ....\n");
-				return STATUS_SUCCESS;
-			}
-			else {
-				return STATUS_FAILED_DRIVER_ENTRY;
-			}
-		}
-		else {
-			return STATUS_FAILED_DRIVER_ENTRY;
-		}
-	}
-	else {
-		return STATUS_FAILED_DRIVER_ENTRY;
-	}
-
-	//return STATUS_SUCCESS;
+	return STATUS_SUCCESS;
 }
 
 EXTERN_C VOID DriverUnload(_In_ PDRIVER_OBJECT DriverObject) {
