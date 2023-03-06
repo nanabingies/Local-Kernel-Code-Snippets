@@ -114,4 +114,32 @@ namespace KernelHook {
 		
 		OriginalZwReadFile = reinterpret_cast<pNtReadFile>(RoutineAddress);
 	}
+
+	NTSTATUS InterLockedHook(/* NtCreateFile */) {
+		UNICODE_STRING usString{};
+		RtlInitUnicodeString(&usString, L"NtReadFile");
+
+		auto address = MmGetSystemRoutineAddress(&usString);
+		if (!address) {
+			DbgPrint("[-] %wZ address not found.\n", &usString);
+			return STATUS_NOT_FOUND;
+		}
+		DbgPrint("[+] NtReadFile : 0x%p\n", address);
+		__debugbreak();
+
+		auto HookAddress = &HookNtReadFile;
+		pNtReadFile NtReadFileAddress{};
+		*(PVOID*)&NtReadFileAddress = InterlockedExchangePointer(
+			(volatile PVOID*)address, (PVOID)&HookAddress
+		);
+		
+		if (!NtReadFileAddress) {
+			DbgPrint("[-] InterlockedExchangePointer failed.\n");
+			return STATUS_UNSUCCESSFUL;
+		}
+		DbgPrint("[+] NtReadFileAddress : 0x%p | HookAddress : %p\n",
+			(PVOID)NtReadFileAddress, (PVOID)HookAddress);
+
+		return STATUS_SUCCESS;
+	}
 }

@@ -28,4 +28,7 @@ namespace KernelHook {
 	NTSTATUS PrepareAddress(_In_ PWSTR, _Out_ PVOID*);
 
 	VOID RestoreAddress(_In_ PVOID);
+
+	// InterlockedExchangePointer
+	NTSTATUS InterLockedHook(/* NtCreateFile */);
 }
