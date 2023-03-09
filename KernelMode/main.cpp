@@ -1,4 +1,5 @@
 #include "Header.hpp"
+#include "KernelHook.hpp"
 #pragma warning(disable : 4100)
 
 EXTERN_C NTSTATUS DriverEntry(_In_ PDRIVER_OBJECT DriverObject, _In_ PUNICODE_STRING RegistryPath) {
@@ -30,6 +31,8 @@ EXTERN_C NTSTATUS DriverEntry(_In_ PDRIVER_OBJECT DriverObject, _In_ PUNICODE_ST
 
 	DriverObject->Flags &= ~DO_DEVICE_INITIALIZING;
 	DriverObject->Flags |= DO_BUFFERED_IO;
+
+	KernelHook::InterLockedHook();
 
 	return STATUS_SUCCESS;
 }

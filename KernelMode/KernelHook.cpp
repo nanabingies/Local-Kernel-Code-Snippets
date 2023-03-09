@@ -127,10 +127,18 @@ namespace KernelHook {
 		DbgPrint("[+] NtReadFile : 0x%p\n", address);
 		__debugbreak();
 
+		auto mdl = IoAllocateMdl(address, sizeof(PVOID), FALSE, FALSE, nullptr);
+		NT_ASSERT(mdl != nullptr);
+		MmBuildMdlForNonPagedPool(mdl);
+		MmProbeAndLockPages(mdl, KernelMode, IoModifyAccess);
+		auto VirtualAddress = MmMapLockedPagesSpecifyCache(mdl, KernelMode, MmNonCached, NULL, 0, NormalPagePriority);
+		NT_ASSERT(VirtualAddress != nullptr);
+		MmProtectMdlSystemAddress(mdl, PAGE_EXECUTE_READWRITE);
+
 		auto HookAddress = &HookNtReadFile;
 		pNtReadFile NtReadFileAddress{};
 		*(PVOID*)&NtReadFileAddress = InterlockedExchangePointer(
-			(volatile PVOID*)address, (PVOID)&HookAddress
+			(volatile PVOID*)VirtualAddress, (PVOID)&HookAddress
 		);
 		
 		if (!NtReadFileAddress) {
