@@ -29,6 +29,8 @@ namespace KernelHook {
 
 	VOID RestoreAddress(_In_ PVOID);
 
+	VOID RestoreHook();
+
 	// InterlockedExchangePointer
 	NTSTATUS InterLockedHook(/* NtCreateFile */);
 

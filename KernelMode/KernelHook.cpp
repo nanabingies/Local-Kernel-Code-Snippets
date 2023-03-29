@@ -73,8 +73,13 @@ namespace KernelHook {
 
 		DbgPrint("[%s] <== \n", __FUNCTION__);
 
-		//return OriginalZwReadFile(FileHandle, Event, ApcRoutine, ApcContext, IoStatusBlock, Buffer, Length, ByteOffset, Key);
-		return STATUS_SUCCESS;
+		RestoreHook();
+
+		DbgPrint("[Another verification] OriginalZwReadFile : 0x%p\n", OriginalZwReadFile);
+		__debugbreak();
+
+		return OriginalZwReadFile(FileHandle, Event, ApcRoutine, ApcContext, IoStatusBlock, Buffer, Length, ByteOffset, Key);
+		//return STATUS_SUCCESS;
 	}
 
 	//template <typename T>
@@ -102,6 +107,7 @@ namespace KernelHook {
 			DbgPrint("[-] MmMapLockedPagesSpecifyCache failed.\n");
 			return STATUS_INSUFFICIENT_RESOURCES;
 		}
+		DbgPrint("mdl mapped to virtual address : 0x%p\n", VirtualAddress);
 
 		MmProtectMdlSystemAddress(Mdl, PAGE_EXECUTE_READWRITE);
 
@@ -117,6 +123,10 @@ namespace KernelHook {
 			return STATUS_UNSUCCESSFUL;
 		}
 
+		MmUnmapLockedPages(VirtualAddress, Mdl);
+		MmUnlockPages(Mdl);
+		IoFreeMdl(Mdl);
+
 		return STATUS_SUCCESS;
 	}
 
@@ -124,6 +134,8 @@ namespace KernelHook {
 	NTSTATUS PrepareAddress(_In_ PWSTR RoutineName, _Out_ PVOID* RoutineAddress) {
 		UNICODE_STRING usRoutineName{};
 		RtlInitUnicodeString(&usRoutineName, RoutineName);
+
+		__debugbreak();
 
 		*RoutineAddress = 0;
 		*RoutineAddress = MmGetSystemRoutineAddress(&usRoutineName);
@@ -133,16 +145,34 @@ namespace KernelHook {
 		}
 		DbgPrint("[+] %wZ : 0x%p\n", &usRoutineName, *RoutineAddress);
 
-		RtlCopyMemory(&OrigBytes, *RoutineAddress, sizeof(OrigBytes));
+		RtlCopyMemory(OrigBytes, *RoutineAddress, sizeof(OrigBytes));
+		for (auto i = 0; i < sizeof(OrigBytes); i++)
+			DbgPrint("%x ", OrigBytes[i]);
+		DbgPrint("\n");
 		g_Addr = *RoutineAddress;
 
 		return STATUS_SUCCESS;
 	}
 
-	VOID RestoreHook(_In_ PVOID RoutineAddress) {
-		RtlCopyMemory(RoutineAddress, OrigBytes, sizeof(OrigBytes));
+	VOID RestoreHook() {
+		__debugbreak();
+
+		auto mdl = IoAllocateMdl(g_Addr, sizeof(PVOID), FALSE, FALSE, nullptr);
+		NT_ASSERT(mdl != nullptr);
+		MmBuildMdlForNonPagedPool(mdl);
+		MmProbeAndLockPages(mdl, KernelMode, IoModifyAccess);
+		auto VirtualAddress = MmMapLockedPagesSpecifyCache(mdl, KernelMode, MmNonCached, NULL, 0, NormalPagePriority);
+		NT_ASSERT(VirtualAddress != nullptr);
+		MmProtectMdlSystemAddress(mdl, PAGE_EXECUTE_READWRITE);
+
+		RtlCopyMemory(VirtualAddress, OrigBytes, sizeof(OrigBytes));
+		MmUnmapLockedPages(VirtualAddress, mdl);
+		MmUnlockPages(mdl);
+		IoFreeMdl(mdl);
 		
-		OriginalZwReadFile = reinterpret_cast<pNtReadFile>(RoutineAddress);
+		OriginalZwReadFile = reinterpret_cast<pNtReadFile>(g_Addr);
+		DbgPrint("g_Addr : 0x%p\n", g_Addr);
+		DbgPrint("OriginalZwReadFile : 0x%p\n", OriginalZwReadFile);
 	}
 
 	NTSTATUS InterLockedHook(/* NtCreateFile */) {
