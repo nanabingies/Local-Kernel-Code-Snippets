@@ -75,9 +75,6 @@ namespace KernelHook {
 
 		RestoreHook();
 
-		DbgPrint("[Another verification] OriginalZwReadFile : 0x%p\n", OriginalZwReadFile);
-		__debugbreak();
-
 		return OriginalZwReadFile(FileHandle, Event, ApcRoutine, ApcContext, IoStatusBlock, Buffer, Length, ByteOffset, Key);
 		//return STATUS_SUCCESS;
 	}
@@ -135,8 +132,6 @@ namespace KernelHook {
 		UNICODE_STRING usRoutineName{};
 		RtlInitUnicodeString(&usRoutineName, RoutineName);
 
-		__debugbreak();
-
 		*RoutineAddress = 0;
 		*RoutineAddress = MmGetSystemRoutineAddress(&usRoutineName);
 		if (*RoutineAddress == __nullptr) {
@@ -155,7 +150,6 @@ namespace KernelHook {
 	}
 
 	VOID RestoreHook() {
-		__debugbreak();
 
 		auto mdl = IoAllocateMdl(g_Addr, sizeof(PVOID), FALSE, FALSE, nullptr);
 		NT_ASSERT(mdl != nullptr);
