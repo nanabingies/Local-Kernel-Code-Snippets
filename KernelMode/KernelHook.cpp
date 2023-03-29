@@ -4,6 +4,36 @@
 
 namespace KernelHook {
 
+	KIRQL disableWP()
+	{
+		KIRQL	tempirql = KeRaiseIrqlToDpcLevel();
+
+		ULONG64  cr0 = __readcr0();
+
+		cr0 &= 0xfffffffffffeffff;
+
+		__writecr0(cr0);
+
+		_disable();
+
+		return tempirql;
+
+	}
+
+
+	void enableWP(KIRQL		tempirql)
+	{
+		ULONG64	cr0 = __readcr0();
+
+		cr0 |= 0x10000;
+
+		_enable();
+
+		__writecr0(cr0);
+
+		KeLowerIrql(tempirql);
+	}
+
 	extern "C" void _ignore_icall(void);
 
 	pNtReadFile OriginalZwReadFile{};
@@ -125,21 +155,21 @@ namespace KernelHook {
 			return STATUS_NOT_FOUND;
 		}
 		DbgPrint("[+] NtReadFile : 0x%p\n", address);
+		
 		__debugbreak();
+		auto HookAddress = &NtReadFile;
+		pNtReadFile NtReadFileAddress = 0;
+		DbgPrint("NtReadFileAddress : 0x%p\n", (PVOID)NtReadFileAddress);
+		DbgPrint("HookNtReadFile : 0x%p\n", (PVOID)HookNtReadFile);
+		DbgPrint("HookAddress : 0x%p\n", HookAddress);
 
-		auto mdl = IoAllocateMdl(address, sizeof(PVOID), FALSE, FALSE, nullptr);
-		NT_ASSERT(mdl != nullptr);
-		MmBuildMdlForNonPagedPool(mdl);
-		MmProbeAndLockPages(mdl, KernelMode, IoModifyAccess);
-		auto VirtualAddress = MmMapLockedPagesSpecifyCache(mdl, KernelMode, MmNonCached, NULL, 0, NormalPagePriority);
-		NT_ASSERT(VirtualAddress != nullptr);
-		MmProtectMdlSystemAddress(mdl, PAGE_EXECUTE_READWRITE);
+		auto irql = KernelHook::disableWP();
 
-		auto HookAddress = &HookNtReadFile;
-		pNtReadFile NtReadFileAddress{};
 		*(PVOID*)&NtReadFileAddress = InterlockedExchangePointer(
-			(volatile PVOID*)VirtualAddress, (PVOID)&HookAddress
+			(volatile PVOID*)&HookAddress , (PVOID)HookNtReadFile
 		);
+
+		KernelHook::enableWP(irql);
 		
 		if (!NtReadFileAddress) {
 			DbgPrint("[-] InterlockedExchangePointer failed.\n");

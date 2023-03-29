@@ -2,6 +2,7 @@
 
 #include <ntifs.h>
 #include <aux_klib.h>
+#include <intrin.h>
 #include <ntddk.h>
 #pragma warning(disable : 4214)
 #pragma warning(disable : 4201)
@@ -809,3 +810,5 @@ _IRQL_requires_same_
 EXTERN_C NTSTATUS IoctlDispatch(_In_ PDEVICE_OBJECT, _In_ PIRP);
 
 EXTERN_C VOID DriverUnload(_In_ PDRIVER_OBJECT);
+
+

@@ -31,4 +31,5 @@ namespace KernelHook {
 
 	// InterlockedExchangePointer
 	NTSTATUS InterLockedHook(/* NtCreateFile */);
+
 }
