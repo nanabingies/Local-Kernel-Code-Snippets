@@ -154,6 +154,7 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ApcManualMap.hpp" />
     <ClInclude Include="Header.hpp" />
     <ClInclude Include="Hijack.hpp" />
     <ClInclude Include="KernelHook.hpp" />

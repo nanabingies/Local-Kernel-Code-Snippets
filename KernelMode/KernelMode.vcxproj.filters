@@ -22,6 +22,9 @@
     <Filter Include="Kernel Hook">
       <UniqueIdentifier>{48c3b53c-7137-4005-b76b-0a0c0202cf32}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Apc Manual Map">
+      <UniqueIdentifier>{f1775f0f-66cf-4a1b-a693-a3b203cf8e97}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Inf Include="KernelMode.inf">
@@ -40,6 +43,9 @@
     </ClInclude>
     <ClInclude Include="KernelHook.hpp">
       <Filter>Kernel Hook</Filter>
+    </ClInclude>
+    <ClInclude Include="ApcManualMap.hpp">
+      <Filter>Apc Manual Map</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
