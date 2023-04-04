@@ -20,7 +20,6 @@ namespace DriverManualMap {
 			DbgPrint("Exiting with error code %X\n", ns);
 			return ns;
 		}
-		DbgPrint("--");
 
 		PVOID fileObject;
 		ns = ObReferenceObjectByHandle(hFile, FILE_READ_ACCESS, nullptr, KernelMode,
@@ -34,7 +33,7 @@ namespace DriverManualMap {
 	}
 
 
-	NTSTATUS Fn_ReadBuffer(_In_ HANDLE fileHandle, _Out_ PVOID* fileBuffer) {
+	NTSTATUS Fn_ReadBuffer(_In_ HANDLE fileHandle, _Out_ PBYTE* fileBuffer) {
 		DbgPrint("[%s] => \n", __FUNCTION__);
 		*fileBuffer = nullptr;
 
@@ -57,7 +56,8 @@ namespace DriverManualMap {
 		auto fileSize = fileInfo->EndOfFile.QuadPart;
 		DbgPrint("File Size : %llX\n", fileSize);
 
-		auto buffer = ExAllocatePoolWithTag(NonPagedPoolNx, fileSize, MAP_TAG);
+		auto buffer = reinterpret_cast<BYTE*>
+			(ExAllocatePoolWithTag(NonPagedPoolNx, fileSize, MAP_TAG));
 		if (buffer == nullptr) {
 			DbgPrint("Failed to allocate memory for storing file contents.\n");
 			return STATUS_INSUFFICIENT_RESOURCES;
@@ -88,7 +88,7 @@ namespace DriverManualMap {
 		RtlInitUnicodeString(&fileName, L"\\DosDevices\\C:\\Users\\nana\\Desktop\\TestDriver.sys");
 		if (!NT_SUCCESS(Fn_Read(&fileHandle, fileName)))	return;
 
-		PVOID fileBuffer;
+		BYTE* fileBuffer;
 		if (!NT_SUCCESS(Fn_ReadBuffer(fileHandle, &fileBuffer)))	return;
 
 		// copy contents
@@ -106,20 +106,25 @@ namespace DriverManualMap {
 			return;
 		}
 
-		auto pBase = ExAllocatePoolWithTag(NonPagedPoolNx, nt_headers->OptionalHeader.SizeOfImage, MAP_TAG);
+		const auto aligned_image_size = (nt_headers->OptionalHeader.SizeOfImage & ~(0x1000 - 0x1)) + 0x1000;
+		auto pBase = reinterpret_cast<BYTE*>
+			(ExAllocatePoolWithTag(NonPagedPoolNx, aligned_image_size, MAP_TAG));
 		NT_ASSERT(pBase != nullptr);
 		DbgPrint("Allocated remote base at 0x%p\n", pBase);
 		DbgBreakPoint();
 
 		// copy file headers
 		RtlCopyMemory(pBase, fileBuffer, nt_headers->OptionalHeader.SizeOfHeaders);
+		DbgPrint("Copied file headers to remote base\n");
 
 		// copy section headers
 		auto sections = IMAGE_FIRST_SECTION(nt_headers);
-		for (auto idx = 0; idx < nt_headers->FileHeader.NumberOfSections; idx++) {
+		for (auto idx = 0; idx < nt_headers->FileHeader.NumberOfSections; idx++, sections++) {
 			if (sections->SizeOfRawData > 0) {
-				RtlCopyMemory(((uintptr_t)pBase + sections->VirtualAddress), sections->PointerToRawData,
-					sections->SizeOfRawData);
+				auto section_base = pBase + sections->VirtualAddress;
+				auto section_addr = fileBuffer + sections->PointerToRawData;
+				RtlCopyMemory(section_base, section_addr, sections->SizeOfRawData);
+				DbgPrint("Copied section %s\n", reinterpret_cast<CHAR*>((uintptr_t)fileBuffer + sections->Name));
 			}
 		}
 
