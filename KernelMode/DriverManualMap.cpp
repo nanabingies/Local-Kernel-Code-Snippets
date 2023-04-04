@@ -121,9 +121,9 @@ namespace DriverManualMap {
 		auto sections = IMAGE_FIRST_SECTION(nt_headers);
 		for (auto idx = 0; idx < nt_headers->FileHeader.NumberOfSections; idx++, sections++) {
 			if (sections->SizeOfRawData > 0) {
-				auto section_base = pBase + sections->VirtualAddress;
-				auto section_addr = fileBuffer + sections->PointerToRawData;
-				RtlCopyMemory(section_base, section_addr, sections->SizeOfRawData);
+				//auto section_base = pBase + sections->VirtualAddress;
+				//auto section_addr = fileBuffer + sections->PointerToRawData;
+				//RtlCopyMemory(section_base, section_addr, sections->SizeOfRawData);
 				DbgPrint("Copied section %s\n", reinterpret_cast<CHAR*>((uintptr_t)fileBuffer + sections->Name));
 			}
 		}
