@@ -32,15 +32,7 @@ EXTERN_C NTSTATUS DriverEntry(_In_ PDRIVER_OBJECT DriverObject, _In_ PUNICODE_ST
 	DriverObject->Flags &= ~DO_DEVICE_INITIALIZING;
 	DriverObject->Flags |= DO_BUFFERED_IO;
 
-	PVOID RoutineAddress = 0;
-	PMDL mdl{};
-	if (NT_SUCCESS(KernelHook::PrepareAddress(L"NtReadFile", &RoutineAddress))) {
-		if (NT_SUCCESS(KernelHook::PrepareMdl(RoutineAddress, &mdl))) {
-			if (NT_SUCCESS(KernelHook::SetupHook(RoutineAddress, mdl))) {
-				DbgPrint("Done Hooking.\n");
-			}
-		}
-	}
+	
 
 	return STATUS_SUCCESS;
 }
