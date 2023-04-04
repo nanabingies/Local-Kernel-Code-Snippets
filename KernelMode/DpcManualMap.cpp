@@ -1,6 +1,6 @@
-#include "ApcManualMap.hpp"
+#include "DpcManualMap.hpp"
 
-namespace ApcManualMap {
+namespace DPCManualMap {
 
 	NTSTATUS Fn_Read(_Out_ PHANDLE fileHandle, _In_ PWSTR fileName) {
 		*fileHandle = NULL;
@@ -71,17 +71,11 @@ namespace ApcManualMap {
 	}
 
 	
-	NTSTATUS ApcInitialize() {
-		auto apc = reinterpret_cast<PKAPC>
-			(ExAllocatePoolWithTag(NonPagedPoolNx, sizeof(KAPC), APC_MAP_TAG));
-		if (apc == nullptr) {
-			DbgPrint("Failed to allocate memory for apc\n");
-			return STATUS_INSUFFICIENT_RESOURCES;
-		}
+	VOID ManualMap(_In_ struct _KDPC* Dpc, _In_opt_ PVOID DeferredContext,
+			_In_opt_ PVOID SystemArgument1, _In_opt_ PVOID SystemArgument2) {
 
-		KeInitializeApc(apc, KeGetCurrentThread(), OriginalApcEnvironment, ApcKernelRoutine,
-			nullptr, nullptr, KernelMode, nullptr);
+		DbgPrint("[%s] => \n", __FUNCTION__);
 
-		auto ret = KeInsertQueueApc(apc, nullptr, nullptr, IO_NO_INCREMENT);
+
 	}
 }

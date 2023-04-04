@@ -44,7 +44,7 @@
     <ClInclude Include="KernelHook.hpp">
       <Filter>Kernel Hook</Filter>
     </ClInclude>
-    <ClInclude Include="ApcManualMap.hpp">
+    <ClInclude Include="DpcManualMap.hpp">
       <Filter>DPC Manual Map</Filter>
     </ClInclude>
   </ItemGroup>
@@ -61,7 +61,7 @@
     <ClCompile Include="KernelHook.cpp">
       <Filter>Kernel Hook</Filter>
     </ClCompile>
-    <ClCompile Include="ApcManualMap.cpp">
+    <ClCompile Include="DpcManualMap.cpp">
       <Filter>DPC Manual Map</Filter>
     </ClCompile>
   </ItemGroup>
