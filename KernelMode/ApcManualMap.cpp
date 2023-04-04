@@ -69,4 +69,19 @@ namespace ApcManualMap {
 		ExFreePoolWithTag(fileInfo, APC_MAP_TAG);
 		return ns;
 	}
+
+	
+	NTSTATUS ApcInitialize() {
+		auto apc = reinterpret_cast<PKAPC>
+			(ExAllocatePoolWithTag(NonPagedPoolNx, sizeof(KAPC), APC_MAP_TAG));
+		if (apc == nullptr) {
+			DbgPrint("Failed to allocate memory for apc\n");
+			return STATUS_INSUFFICIENT_RESOURCES;
+		}
+
+		KeInitializeApc(apc, KeGetCurrentThread(), OriginalApcEnvironment, ApcKernelRoutine,
+			nullptr, nullptr, KernelMode, nullptr);
+
+		auto ret = KeInsertQueueApc(apc, nullptr, nullptr, IO_NO_INCREMENT);
+	}
 }
