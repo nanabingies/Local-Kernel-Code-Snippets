@@ -61,5 +61,8 @@
     <ClCompile Include="KernelHook.cpp">
       <Filter>Kernel Hook</Filter>
     </ClCompile>
+    <ClCompile Include="ApcManualMap.cpp">
+      <Filter>Apc Manual Map</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

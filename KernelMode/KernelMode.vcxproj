@@ -161,6 +161,7 @@
     <ClInclude Include="Pool.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ApcManualMap.cpp" />
     <ClCompile Include="Hijack.cpp" />
     <ClCompile Include="KernelHook.cpp" />
     <ClCompile Include="main.cpp" />
