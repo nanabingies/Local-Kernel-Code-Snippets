@@ -40,6 +40,8 @@ namespace DriverManualMap {
 		if (fileHandle == nullptr)	return STATUS_INVALID_PARAMETER_1;
 
 		IO_STATUS_BLOCK ioBlock{};
+		LARGE_INTEGER byteOffset = { 0 };
+
 		auto fileInfo = reinterpret_cast<FILE_STANDARD_INFORMATION*>
 			(ExAllocatePoolWithTag(NonPagedPoolNx, sizeof(FILE_STANDARD_INFORMATION), MAP_TAG));
 		if (fileInfo == nullptr) {
@@ -63,15 +65,15 @@ namespace DriverManualMap {
 			return STATUS_INSUFFICIENT_RESOURCES;
 		}
 
-		ns = ZwReadFile(fileHandle, nullptr, nullptr, nullptr, &ioBlock, buffer, (ULONG)fileSize,
-			nullptr, nullptr);
+		ns = ZwReadFile(fileHandle, nullptr, nullptr, nullptr, &ioBlock, buffer, /*fileSize*/ (ULONG)fileInfo->EndOfFile.QuadPart,
+			&byteOffset, nullptr);
 		if (!NT_SUCCESS(ns)) {
 			DbgPrint("ZwReadFile failed with error status : %X\n", ns);
 			return ns;
 		}
 
 		*fileBuffer = buffer;
-		DbgPrint("File Buffer is at 0x%p\n", buffer);
+		DbgPrint("File Buffer is at 0x%p with size : %llX\n", buffer, fileSize);
 
 		ExFreePoolWithTag(fileInfo, MAP_TAG);
 		DbgPrint("[%s] <= \n", __FUNCTION__);
@@ -90,6 +92,7 @@ namespace DriverManualMap {
 
 		BYTE* fileBuffer;
 		if (!NT_SUCCESS(Fn_ReadBuffer(fileHandle, &fileBuffer)))	return;
+		DbgPrint("fileBuffer : 0x%p\n", fileBuffer);
 
 		// copy contents
 		auto dos_header = reinterpret_cast<IMAGE_DOS_HEADER*>
@@ -110,7 +113,7 @@ namespace DriverManualMap {
 		auto pBase = reinterpret_cast<BYTE*>
 			(ExAllocatePoolWithTag(NonPagedPoolNx, aligned_image_size, MAP_TAG));
 		NT_ASSERT(pBase != nullptr);
-		DbgPrint("Allocated remote base at 0x%p\n", pBase);
+		DbgPrint("Allocated remote base at 0x%p with size %x\n", pBase, aligned_image_size);
 		DbgBreakPoint();
 
 		// copy file headers
