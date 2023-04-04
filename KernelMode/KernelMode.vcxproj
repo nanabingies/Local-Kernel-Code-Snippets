@@ -154,14 +154,14 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DpcManualMap.hpp" />
+    <ClInclude Include="DriverManualMap.hpp" />
     <ClInclude Include="Header.hpp" />
     <ClInclude Include="Hijack.hpp" />
     <ClInclude Include="KernelHook.hpp" />
     <ClInclude Include="Pool.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="DpcManualMap.cpp" />
+    <ClCompile Include="DriverManualMap.cpp" />
     <ClCompile Include="Hijack.cpp" />
     <ClCompile Include="KernelHook.cpp" />
     <ClCompile Include="main.cpp" />

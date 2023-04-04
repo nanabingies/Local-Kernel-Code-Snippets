@@ -1,9 +1,11 @@
-#include "DpcManualMap.hpp"
+#include "DriverManualMap.hpp"
 #pragma warning(disable : 4100)
 
-namespace DPCManualMap {
+namespace DriverManualMap {
 
 	NTSTATUS Fn_Read(_Out_ HANDLE* fileHandle, _In_ UNICODE_STRING fileName) {
+		DbgPrint("[%s] => \n", __FUNCTION__);
+
 		HANDLE hFile;
 		IO_STATUS_BLOCK ioBlock{};
 		OBJECT_ATTRIBUTES oa{};
@@ -26,19 +28,21 @@ namespace DPCManualMap {
 		DbgPrint("FileHandle : %p | fileObject : %p\n", hFile, fileObject);
 
 		*fileHandle = hFile;
+		DbgPrint("[%s] <= \n", __FUNCTION__);
 		
 		return ns;
 	}
 
 
 	NTSTATUS Fn_ReadBuffer(_In_ HANDLE fileHandle, _Out_ PVOID* fileBuffer) {
+		DbgPrint("[%s] => \n", __FUNCTION__);
 		*fileBuffer = nullptr;
 
 		if (fileHandle == nullptr)	return STATUS_INVALID_PARAMETER_1;
 
 		IO_STATUS_BLOCK ioBlock{};
 		auto fileInfo = reinterpret_cast<FILE_STANDARD_INFORMATION*>
-			(ExAllocatePoolWithTag(NonPagedPoolNx, sizeof(FILE_STANDARD_INFORMATION), DPC_MAP_TAG));
+			(ExAllocatePoolWithTag(NonPagedPoolNx, sizeof(FILE_STANDARD_INFORMATION), MAP_TAG));
 		if (fileInfo == nullptr) {
 			DbgPrint("[-] Failed to allocate memory for querying file information.\n");
 			return STATUS_INSUFFICIENT_RESOURCES;
@@ -53,7 +57,7 @@ namespace DPCManualMap {
 		auto fileSize = fileInfo->EndOfFile.QuadPart;
 		DbgPrint("File Size : %llX\n", fileSize);
 
-		auto buffer = ExAllocatePoolWithTag(NonPagedPoolNx, fileSize, DPC_MAP_TAG);
+		auto buffer = ExAllocatePoolWithTag(NonPagedPoolNx, fileSize, MAP_TAG);
 		if (buffer == nullptr) {
 			DbgPrint("Failed to allocate memory for storing file contents.\n");
 			return STATUS_INSUFFICIENT_RESOURCES;
@@ -69,13 +73,13 @@ namespace DPCManualMap {
 		*fileBuffer = buffer;
 		DbgPrint("File Buffer is at 0x%p\n", buffer);
 
-		ExFreePoolWithTag(fileInfo, DPC_MAP_TAG);
+		ExFreePoolWithTag(fileInfo, MAP_TAG);
+		DbgPrint("[%s] <= \n", __FUNCTION__);
 		return ns;
 	}
 
 	
-	VOID ManualMap(/*_In_ struct _KDPC* Dpc, _In_opt_ PVOID DeferredContext,
-			_In_opt_ PVOID SystemArgument1, _In_opt_ PVOID SystemArgument2*/) {
+	VOID ManualMap(_In_ PVOID IoObject, _In_opt_ PVOID Context, _In_ PIO_WORKITEM IoWorkItem) {
 
 		DbgPrint("[%s] => \n", __FUNCTION__);
 
@@ -102,15 +106,46 @@ namespace DPCManualMap {
 			return;
 		}
 
+		auto pBase = ExAllocatePoolWithTag(NonPagedPoolNx, nt_headers->OptionalHeader.SizeOfImage, MAP_TAG);
+		NT_ASSERT(pBase != nullptr);
+		DbgPrint("Allocated remote base at 0x%p\n", pBase);
+		DbgBreakPoint();
+
+		// copy file headers
+		RtlCopyMemory(pBase, fileBuffer, nt_headers->OptionalHeader.SizeOfHeaders);
+
+		// copy section headers
+		auto sections = IMAGE_FIRST_SECTION(nt_headers);
+		for (auto idx = 0; idx < nt_headers->FileHeader.NumberOfSections; idx++) {
+			if (sections->SizeOfRawData > 0) {
+				RtlCopyMemory(((uintptr_t)pBase + sections->VirtualAddress), sections->PointerToRawData,
+					sections->SizeOfRawData);
+			}
+		}
+
 		DbgPrint("Passed all checks\n");
-		ExFreePoolWithTag(fileBuffer, DPC_MAP_TAG);
+		ExFreePoolWithTag(fileBuffer, MAP_TAG);
+		DbgPrint("[%s] <= \n", __FUNCTION__);
 
 		return;
 	}
 
 
 	NTSTATUS Fn_WorkItem(_In_ PDEVICE_OBJECT DeviceObject) {
-		auto workItem = reinterpret_cast
+		DbgPrint("[%s] => \n", __FUNCTION__);
+		auto workItem = IoAllocateWorkItem(DeviceObject);
+		if (workItem == nullptr) {
+			DbgPrint("IoAllocateWorkItem failed.\n");
+			return STATUS_INSUFFICIENT_RESOURCES;
+		}
+
+		IoQueueWorkItemEx(workItem, ManualMap, DelayedWorkQueue, nullptr);
+
+		LARGE_INTEGER interval{};
+		interval.QuadPart = -1000 * 100;
+		KeDelayExecutionThread(KernelMode, FALSE, &interval);
+		IoFreeWorkItem(workItem);
+		DbgPrint("[%s] <= \n", __FUNCTION__);
 
 		return STATUS_SUCCESS;
 	}

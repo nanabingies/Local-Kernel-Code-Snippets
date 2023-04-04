@@ -1,11 +1,11 @@
 #pragma once
 #include "Header.hpp"
 
-// Kernel Mode Manual Mapping through DPCs
+// Kernel Mode Manual Mapping using System Worker Threads
 
-#define DPC_MAP_TAG ' cpD'
+#define MAP_TAG 'gaT_'
 
-namespace DPCManualMap {
+namespace DriverManualMap {
 	// open the file for reading and return handle
 	NTSTATUS Fn_Read(_Out_ HANDLE*, _In_ UNICODE_STRING);
 
@@ -13,7 +13,8 @@ namespace DPCManualMap {
 	NTSTATUS Fn_ReadBuffer(_In_ HANDLE, _Out_ PVOID*);
 
 	//KDEFERRED_ROUTINE ManualMap;
-	VOID ManualMap();
+	//PIO_WORKITEM_ROUTINE_EX ManualMap;
+	VOID ManualMap(_In_ PVOID, _In_opt_ PVOID, _In_ PIO_WORKITEM);
 
 	NTSTATUS Fn_WorkItem(_In_ PDEVICE_OBJECT);
 }
