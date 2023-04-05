@@ -487,25 +487,22 @@ typedef enum _SYSTEM_INFORMATION_CLASS {
 //#define MAXIMUM_FILENAME_LENGTH 255 
 typedef unsigned short WORD;
 
-typedef struct SYSTEM_MODULE {
-	ULONG                Reserved1;
-	ULONG                Reserved2;
-#ifdef _WIN64
-	ULONG				Reserved3;
-#endif
-	PVOID                ImageBaseAddress;
-	ULONG                ImageSize;
-	ULONG                Flags;
-	WORD                 Id;
-	WORD                 Rank;
-	WORD                 w018;
-	WORD                 NameOffset;
-	CHAR                 Name[MAXIMUM_FILENAME_LENGTH];
-}SYSTEM_MODULE, * PSYSTEM_MODULE;
+typedef struct _SYSTEM_MODULE {
+	HANDLE Section;
+	PVOID MappedBase;
+	PVOID ImageBase;
+	ULONG ImageSize;
+	ULONG Flags;
+	USHORT LoadOrderIndex;
+	USHORT InitOrderIndex;
+	USHORT LoadCount;
+	USHORT OffsetToFileName;
+	UCHAR  FullPathName[MAXIMUM_FILENAME_LENGTH];
+} SYSTEM_MODULE, * PSYSTEM_MODULE;
 
-typedef struct SYSTEM_MODULE_INFORMATION {
-	ULONG                ModulesCount;
-	SYSTEM_MODULE        Modules[1];
+typedef struct _SYSTEM_MODULE_INFORMATION {
+	ULONG NumberOfModules;
+	SYSTEM_MODULE Modules[1];
 } SYSTEM_MODULE_INFORMATION, * PSYSTEM_MODULE_INFORMATION;
 
 typedef struct _RTL_PROCESS_MODULE_INFORMATION {

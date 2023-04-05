@@ -17,5 +17,11 @@ namespace DriverManualMap {
 	//PIO_WORKITEM_ROUTINE_EX ManualMap;
 	VOID ManualMap(_In_ PVOID, _In_opt_ PVOID, _In_ PIO_WORKITEM);
 
+	// when given a module name, return the address
+	PVOID GetModuleBaseAddress(PSTR);
+
+	// 
+	ULONG64 GetExport(PBYTE base, PCHAR exportName);
+
 	NTSTATUS Fn_WorkItem(_In_ PDEVICE_OBJECT);
 }
