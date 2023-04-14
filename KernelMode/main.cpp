@@ -1,5 +1,4 @@
 #include "Header.hpp"
-#include "DriverManualMap.hpp"
 #pragma warning(disable : 4100)
 
 EXTERN_C NTSTATUS DriverEntry(_In_ PDRIVER_OBJECT DriverObject, _In_ PUNICODE_STRING RegistryPath) {
@@ -32,7 +31,7 @@ EXTERN_C NTSTATUS DriverEntry(_In_ PDRIVER_OBJECT DriverObject, _In_ PUNICODE_ST
 	DriverObject->Flags &= ~DO_DEVICE_INITIALIZING;
 	DriverObject->Flags |= DO_BUFFERED_IO;
 
-	DriverManualMap::Fn_WorkItem(DriverObject->DeviceObject);
+	
 
 	return STATUS_SUCCESS;
 }
