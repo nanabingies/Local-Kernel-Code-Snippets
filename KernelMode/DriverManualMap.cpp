@@ -1,5 +1,6 @@
 #include "DriverManualMap.hpp"
 #pragma warning(disable : 4100)
+#pragma warning(disable : 6387)
 
 namespace DriverManualMap {
 
@@ -112,7 +113,7 @@ namespace DriverManualMap {
 					(remoteMemory + originalFirstThunk->u1.AddressOfData))->Name);
 				ULONG64 import = GetExport((PBYTE)nameAddress, importName);
 				if (!import) {
-					DbgPrint("Failed to find export %s in module %s\n", importName, nameAddress);
+					DbgPrint("Failed to find export %s in module %p\n", importName, nameAddress);
 					return;
 				}
 
@@ -155,6 +156,7 @@ namespace DriverManualMap {
 		DbgPrint("Done base relocations.\n");
 
 		auto driver_entry = remoteMemory + nt_headers->OptionalHeader.AddressOfEntryPoint;
+		if (driver_entry == nullptr)	return;
 		((PDRIVER_INITIALIZE)(driver_entry))(reinterpret_cast<PDRIVER_OBJECT>(remoteMemory), nullptr);
 
 
