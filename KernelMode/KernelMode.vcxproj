@@ -154,6 +154,7 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CodeInjection.hpp" />
     <ClInclude Include="DriverManualMap.hpp" />
     <ClInclude Include="Header.hpp" />
     <ClInclude Include="Hijack.hpp" />
