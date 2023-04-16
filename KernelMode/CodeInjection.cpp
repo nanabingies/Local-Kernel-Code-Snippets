@@ -36,6 +36,7 @@ namespace CodeInjection {
 	SIZE_T SectionSize = 102400;
 
 	auto Injection(ULONG Pid) -> NTSTATUS {
+		__debugbreak();
 		if (Pid == 0)	return STATUS_INVALID_PARAMETER_1;
 
 		PEPROCESS Eprocess{};
