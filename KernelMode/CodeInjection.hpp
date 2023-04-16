@@ -13,9 +13,11 @@
 
 namespace CodeInjection {
 	
-	auto Injection(ULONG Pid)->NTSTATUS;
+	auto Injection(ULONG)->NTSTATUS;
+
+	auto PerformInjection(ULONG)->NTSTATUS;
 
 	auto CreateSection(HANDLE*)->NTSTATUS;
 
-	auto MapSection(HANDLE*, HANDLE)->NTSTATUS;
+	auto MapSection(HANDLE, HANDLE, PVOID*)->NTSTATUS;
 }

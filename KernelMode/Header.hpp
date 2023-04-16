@@ -809,3 +809,4 @@ EXTERN_C NTSTATUS IoctlDispatch(_In_ PDEVICE_OBJECT, _In_ PIRP);
 EXTERN_C VOID DriverUnload(_In_ PDRIVER_OBJECT);
 
 
+KGUARDED_MUTEX g_GuardedMutex{};

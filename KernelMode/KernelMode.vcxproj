@@ -162,6 +162,7 @@
     <ClInclude Include="Pool.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CodeInjection.cpp" />
     <ClCompile Include="DriverManualMap.cpp" />
     <ClCompile Include="Hijack.cpp" />
     <ClCompile Include="KernelHook.cpp" />
