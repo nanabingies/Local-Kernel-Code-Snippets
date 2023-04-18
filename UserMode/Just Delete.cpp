@@ -132,7 +132,7 @@ int main(int argc, char* argv[]) {
 
 _exit:
 	
-	//if (remote_base_address)	NtUnmapViewOfSection(sectionHandle, remote_base_address);
+	if (remote_base_address)	NtUnmapViewOfSection(sectionHandle, remote_base_address);
 	if (current_base_address)	NtUnmapViewOfSection(sectionHandle, current_base_address);
 	if (remoteHandle)		NtClose(remoteHandle);
 	if (sectionHandle)		NtClose(sectionHandle);
