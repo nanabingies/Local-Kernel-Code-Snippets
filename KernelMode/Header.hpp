@@ -796,6 +796,18 @@ ZwQuerySystemInformation(
 	_Out_opt_ PULONG                   ReturnLength
 );
 
+extern "C"
+NTKERNELAPI
+NTSTATUS
+NTAPI
+ZwQueryInformationProcess(
+	_In_		HANDLE				ProcessHandle,
+	_In_		PROCESSINFOCLASS	ProcessInformationClass,
+	_Out_		PVOID				ProcessInformation,
+	_In_		ULONG				ProcessInformationLength,
+	_Out_opt_	PULONG		ReturnLength
+);
+
 _Function_class_(DRIVER_DISPATCH)
 _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
@@ -808,5 +820,3 @@ EXTERN_C NTSTATUS IoctlDispatch(_In_ PDEVICE_OBJECT, _In_ PIRP);
 
 EXTERN_C VOID DriverUnload(_In_ PDRIVER_OBJECT);
 
-
-KGUARDED_MUTEX g_GuardedMutex{};

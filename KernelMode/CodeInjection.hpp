@@ -11,13 +11,20 @@
 /// Done !!!!
 
 
+
 namespace CodeInjection {
 	
-	auto Injection(ULONG)->NTSTATUS;
+	auto Injection(_In_ ULONG)->NTSTATUS;
 
-	auto PerformInjection(ULONG)->NTSTATUS;
+	auto PerformInjection(_In_ ULONG)->NTSTATUS;
 
-	auto CreateSection(HANDLE*)->NTSTATUS;
+	auto CreateSection(_Out_ HANDLE*)->NTSTATUS;
 
-	auto MapSection(HANDLE, HANDLE, PVOID*)->NTSTATUS;
+	auto MapSection(_In_ HANDLE, _In_ HANDLE, _Out_ PVOID*, _In_ BOOLEAN)->NTSTATUS;
+
+	auto OpenProcess(_In_ ULONG, _Out_ HANDLE*)->NTSTATUS;
+
+	auto PerformApcInjection(_In_ PETHREAD, _In_ PVOID)->NTSTATUS;
+
+	auto ApcKernelRoutine(_In_ PKAPC, _Inout_ PKNORMAL_ROUTINE*, _Inout_ PVOID*, _Inout_ PVOID*, _Inout_ PVOID*) -> void;
 }
