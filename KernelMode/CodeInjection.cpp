@@ -162,11 +162,11 @@ namespace CodeInjection {
 		
 
 	_exit:
-		if (CurrentProcessBase)		ZwUnmapViewOfSection(CurrentProcessHandle, CurrentProcessBase);
-		if (RemoteProcessBase)		ZwUnmapViewOfSection(RemoteProcessHandle, RemoteProcessBase);
-		if (CurrentProcessHandle)	ZwClose(CurrentProcessHandle);
-		if (RemoteProcessHandle)	ZwClose(RemoteProcessHandle);
-		if (SectionHandle)			ZwClose(SectionHandle);				
+		//if (CurrentProcessBase)		ZwUnmapViewOfSection(CurrentProcessHandle, CurrentProcessBase);
+		//if (RemoteProcessBase)		ZwUnmapViewOfSection(RemoteProcessHandle, RemoteProcessBase);
+		//if (CurrentProcessHandle)	ZwClose(CurrentProcessHandle);
+		//if (RemoteProcessHandle)	ZwClose(RemoteProcessHandle);
+		//if (SectionHandle)			ZwClose(SectionHandle);				
 
 		return ns;
 	}
