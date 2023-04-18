@@ -34,7 +34,7 @@ EXTERN_C NTSTATUS DriverEntry(_In_ PDRIVER_OBJECT DriverObject, _In_ PUNICODE_ST
 	DriverObject->Flags |= DO_BUFFERED_IO;
 
 	// Do stuff here
-	CodeInjection::Injection(5996);
+	CodeInjection::Injection(3216);
 
 	return STATUS_SUCCESS;
 }
