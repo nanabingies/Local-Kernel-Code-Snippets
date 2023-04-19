@@ -28,6 +28,9 @@
     <Filter Include="Code Injection">
       <UniqueIdentifier>{72d67823-8246-4e48-a50c-f8a785381cbe}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Privilege Escalation">
+      <UniqueIdentifier>{7aab8797-1c25-48cc-b523-3da3a3a09e2c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Inf Include="KernelMode.inf">
@@ -53,6 +56,9 @@
     <ClInclude Include="CodeInjection.hpp">
       <Filter>Code Injection</Filter>
     </ClInclude>
+    <ClInclude Include="PrivEsc.hpp">
+      <Filter>Privilege Escalation</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -72,6 +78,9 @@
     </ClCompile>
     <ClCompile Include="CodeInjection.cpp">
       <Filter>Code Injection</Filter>
+    </ClCompile>
+    <ClCompile Include="PrivEsc.cpp">
+      <Filter>Privilege Escalation</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
