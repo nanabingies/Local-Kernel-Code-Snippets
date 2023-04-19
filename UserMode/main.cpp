@@ -30,7 +30,7 @@ auto getPid() -> DWORD {
 	return procID;
 }
 
-/*int main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {
 
 	const auto hHandle = ::CreateFile(DRIVER_NAME, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE,
 		__nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
@@ -43,4 +43,4 @@ auto getPid() -> DWORD {
 	::CloseHandle(hHandle);
 
 	return 0;
-}*/
+}
