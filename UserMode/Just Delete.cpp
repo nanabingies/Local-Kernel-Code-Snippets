@@ -1,4 +1,4 @@
-#include <iostream>
+/*#include <iostream>
 #include <assert.h>
 #include <Windows.h>
 #include <winternl.h>
@@ -138,4 +138,4 @@ _exit:
 	if (sectionHandle)		NtClose(sectionHandle);
 
 	return 0;
-}
+}*/
