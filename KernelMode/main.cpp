@@ -64,7 +64,7 @@ EXTERN_C NTSTATUS IoctlDispatch(_In_ PDEVICE_OBJECT DeviceObject, _In_ PIRP Irp)
 	auto ns = STATUS_SUCCESS;
 
 	Irp->IoStatus.Status = ns;
-	Irp->IoStatus.Information = 0;
+	Irp->IoStatus.Information = 0
 	
 	IoCompleteRequest(Irp, IO_NO_INCREMENT);
 	return ns;
