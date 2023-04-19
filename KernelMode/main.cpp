@@ -61,7 +61,7 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
 EXTERN_C NTSTATUS IoctlDispatch(_In_ PDEVICE_OBJECT DeviceObject, _In_ PIRP Irp) {
 
-	NTSTATUS ns = STATUS_SUCCESS;
+	auto ns = STATUS_SUCCESS;
 
 	Irp->IoStatus.Status = ns;
 	Irp->IoStatus.Information = 0;
