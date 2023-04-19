@@ -61,8 +61,6 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
 EXTERN_C NTSTATUS IoctlDispatch(_In_ PDEVICE_OBJECT DeviceObject, _In_ PIRP Irp) {
 
-	//auto ioStackLocation = IoGetCurrentIrpStackLocation(Irp);
-	//auto ctlcode = ioStackLocation->Parameters.DeviceIoControl.IoControlCode;
 	NTSTATUS ns = STATUS_SUCCESS;
 
 	Irp->IoStatus.Status = ns;
