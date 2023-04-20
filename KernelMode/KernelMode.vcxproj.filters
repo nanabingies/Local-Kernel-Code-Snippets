@@ -31,6 +31,9 @@
     <Filter Include="Privilege Escalation">
       <UniqueIdentifier>{7aab8797-1c25-48cc-b523-3da3a3a09e2c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="View Process PT">
+      <UniqueIdentifier>{989fb926-6c00-4609-bb3e-6174031ccbc7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Inf Include="KernelMode.inf">
