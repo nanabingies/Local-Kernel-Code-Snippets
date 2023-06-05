@@ -12,13 +12,13 @@ namespace IATHook {
 	auto NotifyRoutine(_In_opt_ PUNICODE_STRING FullImageName, HANDLE ProcessId, PIMAGE_INFO ImageInfo) -> void {
 		if (FullImageName && wcsstr(FullImageName->Buffer, drvName)) {
 			DbgPrint(">==================== Driver %wZ ===================<\n", FullImageName);
-			IATHook(ImageInfo->ImageBase)
+			IATHook(ImageInfo->ImageBase, &Fn_MmGetSystemRoutineAddress);
 		}
 	}
 
 	auto GetDriverBase(_In_ CHAR*)->PVOID;
 
-	auto IATHook(_In_ PVOID, _In_ uint64_t) -> void;
+	auto IATHook(_In_ PVOID, _In_ PVOID) -> void;
 
 	auto Fn_MmGetSystemRoutineAddress(_In_ PUNICODE_STRING)->PVOID;
 }
