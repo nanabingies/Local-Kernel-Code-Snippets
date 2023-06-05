@@ -34,6 +34,9 @@
     <Filter Include="View Process PT">
       <UniqueIdentifier>{989fb926-6c00-4609-bb3e-6174031ccbc7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="IAT Hook">
+      <UniqueIdentifier>{d187bad3-2934-462f-96db-9865274558c2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Inf Include="KernelMode.inf">
@@ -62,6 +65,9 @@
     <ClInclude Include="PrivEsc.hpp">
       <Filter>Privilege Escalation</Filter>
     </ClInclude>
+    <ClInclude Include="iat_hook.hpp">
+      <Filter>IAT Hook</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -84,6 +90,9 @@
     </ClCompile>
     <ClCompile Include="PrivEsc.cpp">
       <Filter>Privilege Escalation</Filter>
+    </ClCompile>
+    <ClCompile Include="iat_hook.cpp">
+      <Filter>IAT Hook</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
