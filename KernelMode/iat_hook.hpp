@@ -16,7 +16,7 @@ namespace IATHook {
 		}
 	}
 
-	auto GetDriverBase(_In_ CHAR*)->PVOID;
+	auto GetDriverBase(_In_ LPCSTR)->PVOID;
 
 	auto IATHook(_In_ PVOID, _In_ PVOID) -> void;
 
