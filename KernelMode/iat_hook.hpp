@@ -30,7 +30,7 @@ namespace IATHook {
 
 	auto gh_KeStackAttachProcess(PRKPROCESS, PRKAPC_STATE)->VOID;
 
-	auto gh_DbgPrint()->PVOID;
+	auto gh_DbgPrint()->ULONG;
 
 	auto gh_ZwMapViewOfSection()->PVOID;
 

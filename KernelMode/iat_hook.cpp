@@ -266,4 +266,8 @@ namespace IATHook {
 
 		return KeStackAttachProcess(PROCESS, ApcState);
 	}
+
+	auto gh_DbgPrint() -> ULONG {
+
+	}
 }
