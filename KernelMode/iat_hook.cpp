@@ -315,6 +315,10 @@ namespace IATHook {
 
 		DbgPrint("[>] %s => \n", __FUNCTION__);
 
+		DbgPrint("\t[*] SectionHandle : %llx\n", reinterpret_cast<uint64_t>(SectionHandle));
+		DbgPrint("\t[*] ObjectName : %wZ", ObjectAttributes->ObjectName);
+		DbgPrint("\t[*] FileHandle : %llx\n", reinterpret_cast<uint64_t>(FileHandle));
+
 		DbgPrint("[>] %s <= \n", __FUNCTION__);
 
 		return ZwCreateSection(SectionHandle, DesiredAccess, ObjectAttributes, MaximumSize, SectionPageProtection, AllocationAttributes, FileHandle);
