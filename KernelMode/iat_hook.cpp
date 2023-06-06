@@ -292,5 +292,31 @@ namespace IATHook {
 		_In_                ULONG           AllocationType,
 		_In_                ULONG           Win32Protect) -> NTSTATUS {
 
+		DbgPrint("[>] %s => \n", __FUNCTION__);
+
+		DbgPrint("\t[*] SectionHandle : %llx\n", reinterpret_cast<uint64_t>(SectionHandle));
+		DbgPrint("\t[*] ProcessHandle : %llx\n", reinterpret_cast<uint64_t>(ProcessHandle));
+		DbgPrint("\t[*] BaseAddress : %p\n", *BaseAddress);
+		DbgPrint("\t[*] CommitSize : %llx\n", CommitSize);
+		DbgPrint("\t[*] AllocationType : %lx\n", AllocationType);
+
+		DbgPrint("[>] %s <= \n", __FUNCTION__);
+		
+		return ZwMapViewOfSection(SectionHandle, ProcessHandle, BaseAddress, ZeroBits, CommitSize, SectionOffset, ViewSize, InheritDisposition, AllocationType, Win32Protect);
+	}
+
+	auto gh_ZwCreateSection(_Out_          PHANDLE            SectionHandle,
+		_In_           ACCESS_MASK        DesiredAccess,
+		_In_opt_ POBJECT_ATTRIBUTES ObjectAttributes,
+		_In_opt_ PLARGE_INTEGER     MaximumSize,
+		_In_           ULONG              SectionPageProtection,
+		_In_           ULONG              AllocationAttributes,
+		_In_opt_ HANDLE             FileHandle) -> NTSTATUS {
+
+		DbgPrint("[>] %s => \n", __FUNCTION__);
+
+		DbgPrint("[>] %s <= \n", __FUNCTION__);
+
+		return ZwCreateSection(SectionHandle, DesiredAccess, ObjectAttributes, MaximumSize, SectionPageProtection, AllocationAttributes, FileHandle);
 	}
 }

@@ -37,5 +37,5 @@ namespace IATHook {
 	auto gh_ZwMapViewOfSection(_In_ HANDLE, _In_ HANDLE, _Inout_ PVOID*, _In_ ULONG_PTR, _In_ SIZE_T, _Inout_opt_ PLARGE_INTEGER,
 		_Inout_ PSIZE_T, _In_ SECTION_INHERIT, _In_ ULONG, _In_ ULONG)->NTSTATUS;
 
-	auto gh_ZwCreateSection()->PVOID;
+	auto gh_ZwCreateSection(_Out_ PHANDLE, _In_ ACCESS_MASK, _In_opt_ POBJECT_ATTRIBUTES, _In_opt_ PLARGE_INTEGER, _In_ ULONG, _In_ ULONG, _In_opt_ HANDLE)->NTSTATUS;
 }
