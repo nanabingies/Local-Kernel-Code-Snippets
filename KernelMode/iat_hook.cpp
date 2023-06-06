@@ -60,6 +60,19 @@ namespace IATHook {
 		return nullptr;
 	}
 
+	auto GetDriverObject(_In_ UNICODE_STRING usDrvName) -> PDRIVER_OBJECT {
+		PDEVICE_OBJECT pDev{};
+		PFILE_OBJECT pFile{};
+
+		auto ns = IoGetDeviceObjectPointer(&usDrvName, FILE_ALL_ACCESS, &pFile, &pDev);
+		if (!NT_SUCCESS(ns)) {
+			DbgPrint("[-] Encounted error : %x\n", ns);
+			return nullptr;
+		}
+
+		return static_cast<PDRIVER_OBJECT>(pDev->DriverObject);
+	}
+
 	auto IATHook(_In_ PVOID ImageBase, _In_ LPCSTR FuncName, _In_ PVOID HookFunction) -> void {
 		if (ImageBase == nullptr)	return;
 

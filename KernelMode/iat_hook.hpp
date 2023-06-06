@@ -12,6 +12,8 @@ namespace IATHook {
 
 	auto IATHook(_In_ PVOID, _In_ LPCSTR, _In_ PVOID) -> void;
 
+	auto GetDriverObject(_In_ UNICODE_STRING)->PDRIVER_OBJECT;
+
 	auto Fn_MmGetSystemRoutineAddress(_In_ PUNICODE_STRING)->PVOID;
 
 	auto NotifyRoutine(_In_opt_ PUNICODE_STRING, HANDLE, PIMAGE_INFO) -> void;
