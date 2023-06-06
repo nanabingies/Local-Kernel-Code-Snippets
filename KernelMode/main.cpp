@@ -1,4 +1,5 @@
 #include "Header.hpp"
+#include "iat_hook.hpp"
 #pragma warning(disable : 4100)
 
 
@@ -33,12 +34,13 @@ EXTERN_C NTSTATUS DriverEntry(_In_ PDRIVER_OBJECT DriverObject, _In_ PUNICODE_ST
 	DriverObject->Flags |= DO_BUFFERED_IO;
 
 	// Do stuff here
-	
+	PsSetLoadImageNotifyRoutine(static_cast<PLOAD_IMAGE_NOTIFY_ROUTINE>(&IATHook::NotifyRoutine));
 
 	return STATUS_SUCCESS;
 }
 
 EXTERN_C VOID DriverUnload(_In_ PDRIVER_OBJECT DriverObject) {
+	PsRemoveLoadImageNotifyRoutine(static_cast<PLOAD_IMAGE_NOTIFY_ROUTINE>(&IATHook::NotifyRoutine));
 	UNICODE_STRING dosName{};
 	RtlInitUnicodeString(&dosName, DOSDEVICE_NAME);
 	IoDeleteSymbolicLink(&dosName);
