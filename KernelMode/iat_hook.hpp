@@ -32,7 +32,10 @@ namespace IATHook {
 
 	auto gh_DbgPrint()->ULONG;
 
-	auto gh_ZwMapViewOfSection()->PVOID;
+	auto gh_ZwClose(_In_ HANDLE)->NTSTATUS;
+
+	auto gh_ZwMapViewOfSection(_In_ HANDLE, _In_ HANDLE, _Inout_ PVOID*, _In_ ULONG_PTR, _In_ SIZE_T, _Inout_opt_ PLARGE_INTEGER,
+		_Inout_ PSIZE_T, _In_ SECTION_INHERIT, _In_ ULONG, _In_ ULONG)->NTSTATUS;
 
 	auto gh_ZwCreateSection()->PVOID;
 }

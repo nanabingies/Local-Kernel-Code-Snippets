@@ -146,9 +146,9 @@ namespace IATHook {
 			return &gh_KeStackAttachProcess;
 		}
 
-		if (wcsstr(RoutineName->Buffer, L"DbgPrint")) {
-			DbgPrint("[%s] Hooked DbgPrint\n", __FUNCTION__);
-			return &gh_DbgPrint;
+		if (wcsstr(RoutineName->Buffer, L"ZwClose")) {
+			DbgPrint("[%s] Hooked ZwClose\n", __FUNCTION__);
+			return &gh_ZwClose;
 		}
 
 		if (wcsstr(RoutineName->Buffer, L"ZwMapViewOfSection")) {
@@ -260,7 +260,7 @@ namespace IATHook {
 		DbgPrint("[>] %s => \n", __FUNCTION__);
 
 		DbgPrint("\t[*] PROCESS : %llx\n", reinterpret_cast<uint64_t>(PROCESS));
-		DbgPrint("\t[*] ApcState : %p\n", ApcState);
+		DbgPrint("\t[*] ApcState : %llx\n", reinterpret_cast<uint64_t>(ApcState));
 
 		DbgPrint("[>] %s <= \n", __FUNCTION__);
 
@@ -268,6 +268,29 @@ namespace IATHook {
 	}
 
 	auto gh_DbgPrint() -> ULONG {
+
+	}
+
+	auto gh_ZwClose(_In_ HANDLE Handle) -> NTSTATUS {
+		DbgPrint("[>] %s => \n", __FUNCTION__);
+
+		DbgPrint("\t[*] Handle : %llx\n", reinterpret_cast<uint64_t>(Handle));
+	
+		DbgPrint("[>] %s <= \n", __FUNCTION__);
+
+		return ZwClose(Handle);
+	}
+
+	auto gh_ZwMapViewOfSection(_In_               HANDLE          SectionHandle,
+		_In_                HANDLE          ProcessHandle,
+		_Inout_           PVOID* BaseAddress,
+		_In_                ULONG_PTR       ZeroBits,
+		_In_                SIZE_T          CommitSize,
+		_Inout_opt_ PLARGE_INTEGER  SectionOffset,
+		_Inout_           PSIZE_T         ViewSize,
+		_In_                SECTION_INHERIT InheritDisposition,
+		_In_                ULONG           AllocationType,
+		_In_                ULONG           Win32Protect) -> NTSTATUS {
 
 	}
 }
