@@ -1,5 +1,6 @@
 #include "iat_hook.hpp" 
 #pragma warning(disable : 6387)
+#pragma warning(disable : 6011)
 
 namespace IATHook {
 
