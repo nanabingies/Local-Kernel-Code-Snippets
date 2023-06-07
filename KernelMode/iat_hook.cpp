@@ -113,13 +113,15 @@ namespace IATHook {
 
 						// Enable Write Protection
 						WPOn();
-						break;
+						return;
 					}
 					++firstThunk;
 					++originalFirstThunk;
 				}
 			}
 		}
+
+		return;
 	}
 
 	auto Fn_MmGetSystemRoutineAddress(_In_ PUNICODE_STRING RoutineName) -> PVOID {
@@ -282,7 +284,7 @@ namespace IATHook {
 	}
 
 	auto gh_DbgPrint() -> ULONG {
-
+		return 0;
 	}
 
 	auto gh_ZwClose(_In_ HANDLE Handle) -> NTSTATUS {
