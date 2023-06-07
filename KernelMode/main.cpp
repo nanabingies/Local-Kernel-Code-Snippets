@@ -40,7 +40,6 @@ EXTERN_C NTSTATUS DriverEntry(_In_ PDRIVER_OBJECT DriverObject, _In_ PUNICODE_ST
 }
 
 EXTERN_C VOID DriverUnload(_In_ PDRIVER_OBJECT DriverObject) {
-	PsRemoveLoadImageNotifyRoutine(static_cast<PLOAD_IMAGE_NOTIFY_ROUTINE>(&IATHook::NotifyRoutine));
 	UNICODE_STRING dosName{};
 	RtlInitUnicodeString(&dosName, DOSDEVICE_NAME);
 	IoDeleteSymbolicLink(&dosName);
